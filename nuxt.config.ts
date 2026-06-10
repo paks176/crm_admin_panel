@@ -9,11 +9,26 @@ export default defineNuxtConfig({
   ],
 
   apollo: {
-    // @ts-ignore
-    clientConfigs: {
+    clients: {
       default: {
-        httpEndpoint: 'http://localhost:4000',
-      }
+        httpEndpoint: 'https://devapi.aidacrm.ru/graphql',
+        browserHttpEndpoint: '',
+        wsEndpoint: '',
+        httpLinkOptions: {},
+        wsLinkOptions: {},
+        websocketsOnly: false,
+        connectToDevTools: false,
+        defaultOptions: {
+          watchQuery: {
+            fetchPolicy: 'cache-and-network'
+          },
+        },
+        inMemoryCacheOptions: {},
+        tokenName: 'apollo-token',
+        tokenStorage: 'localStorage',
+        authType: 'Bearer',
+        authHeader: 'Authorization'
+      },
     }
   },
 

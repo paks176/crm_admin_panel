@@ -1,4 +1,13 @@
 <script setup lang="ts">
+const query = gql`
+  query allUsers {
+    allUsers {
+      id
+      name
+    }
+  }
+`
+
 const colorMode = useColorMode()
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')
@@ -28,6 +37,8 @@ useSeoMeta({
   ogImage: 'https://ui.nuxt.com/assets/templates/nuxt/dashboard-light.png',
   twitterCard: 'summary_large_image'
 })
+
+const { data } = await useAsyncQuery(query)
 </script>
 
 <template>
@@ -36,6 +47,9 @@ useSeoMeta({
 
     <NuxtLayout>
       <NuxtPage />
+      <pre>
+        {{ data }}
+      </pre>
     </NuxtLayout>
   </UApp>
 </template>
