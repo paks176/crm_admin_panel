@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: system-ui, sans-serif;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
@@ -15,4 +15,11 @@
   --color-green-800: #016538;
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
+
+  --ui-primary: #114fd3;
+  --ui-secondary: #6C6C6C;
+  --ui-success: #08875D;
+  --ui-info: #036672;
+  --ui-warning: #F7CE46;
+  --ui-error: #E02D3C;
 }

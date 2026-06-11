@@ -106,12 +106,17 @@ const columns: TableColumn<User>[] = [
       })
   },
   {
-    accessorKey: 'id',
-    header: 'ID'
-  },
-  {
     accessorKey: 'name',
     header: 'Name',
+  },
+  {
+    accessorKey: 'banned',
+    header: 'Заблокирован',
+    cell: ({ row }) => {
+      if (row.banned) {
+        return 'Да'
+      } else return 'Нет'
+    }
   },
   {
     accessorKey: 'email',
@@ -174,12 +179,12 @@ watch(() => statusFilter.value, (newVal) => {
   }
 })
 
-const email = computed({
+const name = computed({
   get: (): string => {
-    return (table.value?.tableApi?.getColumn('email')?.getFilterValue() as string) || ''
+    return (table.value?.tableApi?.getColumn('name')?.getFilterValue() as string) || ''
   },
   set: (value: string) => {
-    table.value?.tableApi?.getColumn('email')?.setFilterValue(value || undefined)
+    table.value?.tableApi?.getColumn('name')?.setFilterValue(value || undefined)
   }
 })
 
@@ -203,7 +208,7 @@ onMounted(async () => {
 <template>
   <UDashboardPanel id="customers">
     <template #header>
-      <UDashboardNavbar title="Customers">
+      <UDashboardNavbar title="Пользователи">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -217,10 +222,10 @@ onMounted(async () => {
     <template #body>
       <div class="flex flex-wrap items-center justify-between gap-1.5">
         <UInput
-          v-model="email"
+          v-model="name"
           class="max-w-sm"
           icon="i-lucide-search"
-          placeholder="Filter emails..."
+          placeholder="Найти по имени"
         />
 
         <div class="flex flex-wrap items-center gap-1.5">

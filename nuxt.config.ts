@@ -8,6 +8,10 @@ export default defineNuxtConfig({
     '@nuxtjs/apollo'
   ],
 
+  ui: {
+    fonts: false
+  },
+
   apollo: {
     clients: {
       default: {
