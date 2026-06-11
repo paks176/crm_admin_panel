@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type { User } from '~/types'
+import type {ApolloError, User} from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
@@ -25,7 +25,7 @@ let allUsers :User[] | [] = []
 let requestError = ''
 
 try {
-  const { data } = await useLazyAsyncQuery(ALL_USERS, {
+  const { data } = await useAsyncQuery(ALL_USERS, {
     pagination: {
       perPage: 20,
       page: 0
@@ -35,10 +35,11 @@ try {
   if (data.value && data.value.allUsers) {
     allUsers = data.value.allUsers
   }
-} catch (error) {
-  requestError = error
-}
 
+} catch (error: unknown) {
+    const localError = error as ApolloError
+    requestError = localError.message
+}
 
 function getRowItems(row: Row<User>) {
   return [
@@ -191,13 +192,9 @@ onMounted(async () => {
   if (requestError) {
     toast.add({
       title: 'Ошибка получения пользователей',
-      duration: 3000,
-      close: true,
-      actions: [{
-        label: 'Закрыть',
-        color: 'neutral',
-        variant: 'outline'
-      }]
+      description: requestError,
+      duration: 5000,
+      close: true
     })
   }
 })
@@ -283,7 +280,6 @@ onMounted(async () => {
           </UDropdownMenu>
         </div>
       </div>
-
         <UTable
           ref="table"
           v-model:column-filters="columnFilters"
