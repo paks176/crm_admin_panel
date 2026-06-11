@@ -1,0 +1,18 @@
+query AllUsers ($page: Int, $perPage: Int, $filter: UserFilter) {
+  allUsers (page: $page, perPage: $perPage, filter: $filter) {
+    id
+    name
+    email
+    banned
+    groups {
+      id
+      name
+    }
+    roles {
+      id
+      name
+    }
+    created_date
+    updated_date
+  }
+}

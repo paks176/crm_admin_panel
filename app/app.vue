@@ -1,12 +1,5 @@
 <script setup lang="ts">
-const query = gql`
-  query allUsers {
-    allUsers {
-      id
-      name
-    }
-  }
-`
+
 
 const colorMode = useColorMode()
 
@@ -38,7 +31,6 @@ useSeoMeta({
   twitterCard: 'summary_large_image'
 })
 
-const { data } = await useAsyncQuery(query)
 </script>
 
 <template>
@@ -47,9 +39,6 @@ const { data } = await useAsyncQuery(query)
 
     <NuxtLayout>
       <NuxtPage />
-      <pre>
-        {{ data }}
-      </pre>
     </NuxtLayout>
   </UApp>
 </template>
