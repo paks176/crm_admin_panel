@@ -1,6 +1,10 @@
 type ID = string
 
 export interface GraphQlResponse {
+  data: {}
+}
+
+export interface GraphQlEntity {
   id :ID
   name?: string
   __typename: string
@@ -11,17 +15,17 @@ export type ApolloError = {
   stack: string
 }
 
-export interface Role extends GraphQlResponse {
+export interface Role extends GraphQlEntity {
   name: string
 }
 
-export interface GroupShort extends GraphQlResponse {
+export interface GroupShort extends GraphQlEntity {
   name: string
 }
 
 // ToDo: interface GroupFull
 
-export interface User extends GraphQlResponse {
+export interface User extends GraphQlEntity {
   name: string
   email: string
   banned: boolean

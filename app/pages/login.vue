@@ -2,6 +2,7 @@
 import authUser from "~/utils/authService"
 import {useToast} from "#imports";
 import type {ApolloError} from "~/types";
+import type { GraphQlResponse } from "~/types"
 
 const toast = useToast()
 
@@ -14,13 +15,14 @@ const loginData = reactive({
   password: ''
 })
 
-const loginAction = async () => {
+const tokenCookie = useCookie('apollo-token')
 
+const loginAction = async () => {
   try {
-    await authUser({
+    const result = await authUser({
       email: loginData.email,
       password: loginData.password
-    })
+    }) :GraphQlResponse
 
     toast.add({
       title: 'Успешно',
@@ -29,9 +31,11 @@ const loginAction = async () => {
       color: 'success'
     })
 
+    tokenCookie.value = result.authUser
+
     setTimeout(async () => {
       await navigateTo('/')
-    }, 2000)
+    }, 1000)
 
   } catch (error: unknown) {
     const localError = error as ApolloError
