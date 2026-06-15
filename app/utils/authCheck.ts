@@ -6,7 +6,7 @@ export const authCheck = () => {
     httpOnly: true
   })
 
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = !!token.value
 
   const login = (newToken: string) => {
     token.value = newToken

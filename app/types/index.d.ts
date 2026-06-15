@@ -6,6 +6,11 @@ export interface GraphQlResponse {
   __typename: string
 }
 
+export type ApolloError = {
+  message: string
+  stack: string
+}
+
 export interface Role extends GraphQlResponse {
   name: string
 }

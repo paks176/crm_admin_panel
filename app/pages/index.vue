@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type {User} from '~/types'
+import type { User } from '~/types'
+import type { ApolloError } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
@@ -12,6 +13,10 @@ const UCheckbox = resolveComponent('UCheckbox')
 
 const toast = useToast()
 const table = useTemplateRef('table')
+
+useHead({
+  title: 'Пользователи'
+})
 
 const columnFilters = ref([{
   id: 'email',
@@ -233,37 +238,37 @@ onMounted(async () => {
           placeholder="Найти по имени"
         />
 
-        <div class="flex flex-wrap items-center gap-1.5">
-          <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
-            <UButton
-              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-              label="Delete"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-trash"
-            >
-              <template #trailing>
-                <UKbd>
-                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
-                </UKbd>
-              </template>
-            </UButton>
-          </CustomersDeleteModal>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
+              <UButton
+                v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
+                label="Delete"
+                color="error"
+                variant="subtle"
+                icon="i-lucide-trash"
+              >
+                <template #trailing>
+                  <UKbd>
+                    {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
+                  </UKbd>
+                </template>
+              </UButton>
+            </CustomersDeleteModal>
 
-          <USelect
-            v-model="statusFilter"
-            :items="[
+            <USelect
+              v-model="statusFilter"
+              :items="[
               { label: 'All', value: 'all' },
               { label: 'Subscribed', value: 'subscribed' },
               { label: 'Unsubscribed', value: 'unsubscribed' },
               { label: 'Bounced', value: 'bounced' }
             ]"
-            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
-            placeholder="Filter status"
-            class="min-w-28"
-          />
-          <UDropdownMenu
-            :items="
+              :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+              placeholder="Filter status"
+              class="min-w-28"
+            />
+            <UDropdownMenu
+              :items="
               table?.tableApi
                 ?.getAllColumns()
                 .filter((column: any) => column.getCanHide())
@@ -279,17 +284,17 @@ onMounted(async () => {
                   }
                 }))
             "
-            :content="{ align: 'end' }"
-          >
-            <UButton
-              label="Display"
-              color="neutral"
-              variant="outline"
-              trailing-icon="i-lucide-settings-2"
-            />
-          </UDropdownMenu>
+              :content="{ align: 'end' }"
+            >
+              <UButton
+                label="Display"
+                color="neutral"
+                variant="outline"
+                trailing-icon="i-lucide-settings-2"
+              />
+            </UDropdownMenu>
+          </div>
         </div>
-      </div>
         <UTable
           ref="table"
           v-model:column-filters="columnFilters"
