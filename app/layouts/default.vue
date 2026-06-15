@@ -1,28 +1,25 @@
 <script setup lang="ts">
-import type {NavigationMenuItem} from '@nuxt/ui'
-
-const route = useRoute()
+import type { NavigationMenuItem } from '@nuxt/ui'
 
 const open = ref(false)
 
 const links = [{
   label: 'Пользователи',
-  icon: 'i-lucide-users',
+  icon: 'i-lucide-user',
   to: '/',
   onSelect: () => {
     open.value = false
   }
 }, {
   label: 'Группы',
-  icon: 'i-lucide-inbox',
+  icon: 'i-lucide-users',
   to: '/inbox',
-  badge: '4',
   onSelect: () => {
     open.value = false
   }
 }, {
   label: 'Роли',
-  icon: 'i-lucide-users',
+  icon: 'oui-app-users-roles',
   to: '/customers',
   onSelect: () => {
     open.value = false

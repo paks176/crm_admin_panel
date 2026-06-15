@@ -29,7 +29,7 @@ export default defineNuxtConfig({
         },
         inMemoryCacheOptions: {},
         tokenName: 'apollo-token',
-        tokenStorage: 'localStorage',
+        tokenStorage: 'cookie',
         authType: 'Bearer',
         authHeader: 'Authorization'
       },

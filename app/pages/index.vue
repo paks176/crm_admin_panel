@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type {ApolloError, User} from '~/types'
+import type {User} from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
@@ -107,7 +107,12 @@ const columns: TableColumn<User>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: 'Имя',
+  },
+  {
+    accessorKey: 'created_date',
+    header: 'Дата создания',
+    cell: ({ row }) => { return row.created_date }
   },
   {
     accessorKey: 'banned',
@@ -126,7 +131,7 @@ const columns: TableColumn<User>[] = [
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
-        label: 'Email',
+        label: 'Почта (логин)',
         icon: isSorted
           ? isSorted === 'asc'
             ? 'i-lucide-arrow-up-narrow-wide'
