@@ -2,7 +2,7 @@
 import authUser from "~/utils/authService"
 import { useToast } from "#imports";
 import type { ApolloError } from "~/types";
-import type { GraphQlResponse } from "~/types"
+import type { MutationResponse } from "~/types"
 
 const toast = useToast()
 
@@ -22,7 +22,7 @@ const loginAction = async () => {
     const { data } = await authUser({
       email: loginData.email,
       password: loginData.password
-    }) as GraphQlResponse<'authUser', string>
+    }) as MutationResponse<'authUser', string>
 
     toast.add({
       title: 'Успешно',

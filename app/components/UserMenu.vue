@@ -1,13 +1,34 @@
 <script setup lang="ts">
+import ME from '~/graphql/queries/Me.graphql'
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { ApolloError, QueryResponse } from '~/types'
+import { useToast } from "#imports";
 
 defineProps<{
   collapsed?: boolean
 }>()
 
-const user = ref({
-  name: 'Админ Админов',
-})
+const toast = useToast()
+
+const user = ref({})
+
+try {
+  const response: QueryResponse<'me', object> = await useAsyncQuery(ME)
+
+  if (response.data.value.me) {
+    user.value = response.data.value.me
+  }
+
+} catch (error) {
+  const localError = error as ApolloError
+  console.error(localError.message)
+  toast.add({
+    title: 'Ошибка',
+    description: localError.message,
+    icon: 'i-lucide-check',
+    color: 'error'
+  })
+}
 
 const { logout } = authCheck()
 

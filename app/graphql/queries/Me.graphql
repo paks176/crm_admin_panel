@@ -1,0 +1,30 @@
+query Me {
+  me {
+    id
+    name
+    email
+    avatar {
+      id
+      minimalX
+      minimalY
+      minimalR
+    }
+    groups {
+      id
+      name
+    }
+    roles {
+      id
+      name
+    }
+    settings {
+      view_settings {
+        id
+        settings
+      }
+    }
+    info {
+      id
+    }
+  }
+}

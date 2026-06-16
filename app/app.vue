@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { LayoutKey } from "#build/types/nitro-layouts"
-
 const colorMode = useColorMode()
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')

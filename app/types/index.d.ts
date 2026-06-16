@@ -1,8 +1,13 @@
 type ID = string
 
-export type GraphQlResponse<K extends string, T> = {
+export type MutationResponse<K extends string, T> = {
   data: Record<K, T>
 }
+
+export type QueryResponse<K extends string, T> = {
+  data: {
+    value: Record<K, T>
+  }}
 
 export interface GraphQlEntity {
   id :ID

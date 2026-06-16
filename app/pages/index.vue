@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type { User } from '~/types'
-import type { ApolloError } from '~/types'
+import type { User, ApolloError, QueryResponse } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
@@ -30,15 +29,15 @@ let allUsers :User[] | [] = []
 let requestError = ''
 
 try {
-  const { data } = await useAsyncQuery(ALL_USERS, {
+  const response: QueryResponse<'allUsers', User[]> = await useAsyncQuery(ALL_USERS, {
     pagination: {
       perPage: 20,
       page: 0
     },
   })
 
-  if (data.value && data.value.allUsers) {
-    allUsers = data.value.allUsers
+  if (response.data.value && response.data.value.allUsers) {
+    allUsers = response.data.value.allUsers
   }
 
 } catch (error: unknown) {
