@@ -21,16 +21,13 @@ useHead({
   title: 'Администрирование'
 })
 
-const { isAuthenticated } = authCheck()
-
-const currentLayout = isAuthenticated ? 'auth-layout' : 'no-auth-layout' as LayoutKey
 </script>
 
 <template>
   <UApp>
     <NuxtLoadingIndicator />
 
-    <NuxtLayout :name="currentLayout">
+    <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
   </UApp>

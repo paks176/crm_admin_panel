@@ -1,7 +1,7 @@
 type ID = string
 
-export interface GraphQlResponse {
-  data: {}
+export type GraphQlResponse<K extends string, T> = {
+  data: Record<K, T>
 }
 
 export interface GraphQlEntity {

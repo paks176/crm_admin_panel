@@ -1,19 +1,19 @@
 export const authCheck = () => {
-  const token = useCookie('apollo_token', {
-    maxAge: 60 * 60 * 24 * 7, // 1 неделя
+  const token = useCookie('apollo-token', {
     sameSite: 'strict',
-    secure: true,
-    httpOnly: true
+    secure: true
   })
 
-  const isAuthenticated = !!token.value
+  const isAuthenticated = computed(() => !!token.value)
 
-  const login = (newToken: string) => {
+  const login = async (newToken: string) => {
     token.value = newToken
+    await navigateTo('/')
   }
 
-  const logout = () => {
-    token.value = null
+  const logout = async () => {
+    token.value = ''
+    await navigateTo('/login')
   }
 
   return {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import authUser from "~/utils/authService"
-import {useToast} from "#imports";
-import type {ApolloError} from "~/types";
+import { useToast } from "#imports";
+import type { ApolloError } from "~/types";
 import type { GraphQlResponse } from "~/types"
 
 const toast = useToast()
@@ -15,14 +15,14 @@ const loginData = reactive({
   password: ''
 })
 
-const tokenCookie = useCookie('apollo-token')
+const { login } = authCheck()
 
 const loginAction = async () => {
   try {
-    const result = await authUser({
+    const { data } = await authUser({
       email: loginData.email,
       password: loginData.password
-    }) :GraphQlResponse
+    }) as GraphQlResponse<'authUser', string>
 
     toast.add({
       title: 'Успешно',
@@ -31,10 +31,8 @@ const loginAction = async () => {
       color: 'success'
     })
 
-    tokenCookie.value = result.authUser
-
     setTimeout(async () => {
-      await navigateTo('/')
+      await login(data.authUser)
     }, 1000)
 
   } catch (error: unknown) {

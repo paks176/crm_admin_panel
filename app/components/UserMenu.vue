@@ -9,20 +9,22 @@ const user = ref({
   name: 'Админ Админов',
 })
 
-const items = computed<DropdownMenuItem[][]>(() => (
+const { logout } = authCheck()
+
+const items = computed<DropdownMenuItem[]>(() => (
   [
-    [
-      {
-        type: 'label',
-        label: user.value.name,
+    {
+      type: 'label',
+      label: user.value.name,
+    },
+    {
+      label: 'Выйти',
+      icon: 'i-lucide-user',
+      onSelect: (e) => {
+        e.preventDefault()
+        logout()
       }
-    ],
-    [
-      {
-        label: 'Выйти',
-        icon: 'i-lucide-user'
-      }
-    ]
+    }
   ]
 ))
 </script>
