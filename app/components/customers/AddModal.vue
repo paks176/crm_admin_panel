@@ -47,6 +47,7 @@ const createUser = async () => {
   } catch (error: unknown) {
     const localError = error as ApolloError
     console.error(localError.message)
+    isLoading.value = false
     toast.add({
       title: 'Ошибка',
       description: localError.message,
@@ -62,6 +63,7 @@ watch(() => open.value, () => {
     state.email = ''
     state.password = ''
     if (isUserCreated.value) {
+      console.log('emit refreshUsersList')
       emits('refreshUsersList')
     }
   }

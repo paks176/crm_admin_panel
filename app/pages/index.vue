@@ -12,6 +12,7 @@ const UCheckbox = resolveComponent('UCheckbox')
 
 const toast = useToast()
 const table = useTemplateRef('table')
+const requestError = ref('')
 
 useHead({
   title: 'Пользователи'
@@ -25,27 +26,39 @@ const columnFilters = ref([{
 const columnVisibility = ref()
 const rowSelection = ref({ 1: true })
 
-let allUsers :User[] | [] = []
-let requestError = ''
+const { data, refresh } = await useAsyncQuery(ALL_USERS, {
+  pagination: {
+    perPage: 20,
+    page: 0
+  },
+})
 
-const getAllUsers = async () => {
+const refreshHandler = async () => {
   try {
-    const response: QueryResponse<'allUsers', User[]> = await useAsyncQuery(ALL_USERS, {
-      pagination: {
-        perPage: 20,
-        page: 0
-      },
+    requestError.value = ''
+    await refresh()
+
+    console.log('Данные успешно обновлены:', data.value)
+
+    toast.add({
+      title: 'Список пользователей обновлен',
+      duration: 5000,
+      color: 'success'
     })
-
-    if (response.data.value && response.data.value.allUsers) {
-      allUsers = response.data.value.allUsers
-    }
-
   } catch (error: unknown) {
     const localError = error as ApolloError
-    requestError = localError.message
+    requestError.value = localError.message
+
+    toast.add({
+      title: 'Ошибка обновления пользователей',
+      description: requestError.value,
+      duration: 5000,
+      color: 'error'
+    })
   }
 }
+
+let allUsers: Ref<User[] | []> = computed(() => data.value?.allUsers || [])
 
 function getRowItems(row: Row<User>) {
   return [
@@ -92,7 +105,7 @@ function getRowItems(row: Row<User>) {
   ]
 }
 
-const columns: TableColumn<User>[] = [
+const columns: Ref<TableColumn<User>[]> = ref([
   {
     id: 'select',
     header: ({ table }) =>
@@ -173,7 +186,7 @@ const columns: TableColumn<User>[] = [
       )
     }
   }
-]
+])
 
 const statusFilter = ref('all')
 
@@ -204,13 +217,11 @@ const pagination = ref({
   pageSize: 10
 })
 
-await getAllUsers()
-
 onMounted(async () => {
-  if (requestError) {
+  if (requestError.value) {
     toast.add({
       title: 'Ошибка получения пользователей',
-      description: requestError,
+      description: requestError.value,
       duration: 5000,
       close: true
     })
@@ -227,7 +238,7 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <CustomersAddModal @refresh-users-list="getAllUsers()" />
+          <CustomersAddModal @refresh-users-list="refreshHandler()" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -300,6 +311,7 @@ onMounted(async () => {
         </div>
         <UTable
           ref="table"
+          :key="allUsers.length"
           v-model:column-filters="columnFilters"
           v-model:column-visibility="columnVisibility"
           v-model:row-selection="rowSelection"
