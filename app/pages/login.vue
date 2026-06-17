@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import authUser from "~/utils/authService"
+import authUser from "~/graphql/services/authService"
 import { useToast } from "#imports";
 import type { ApolloError } from "~/types";
 import type { MutationResponse } from "~/types"

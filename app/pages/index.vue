@@ -28,21 +28,23 @@ const rowSelection = ref({ 1: true })
 let allUsers :User[] | [] = []
 let requestError = ''
 
-try {
-  const response: QueryResponse<'allUsers', User[]> = await useAsyncQuery(ALL_USERS, {
-    pagination: {
-      perPage: 20,
-      page: 0
-    },
-  })
+const getAllUsers = async () => {
+  try {
+    const response: QueryResponse<'allUsers', User[]> = await useAsyncQuery(ALL_USERS, {
+      pagination: {
+        perPage: 20,
+        page: 0
+      },
+    })
 
-  if (response.data.value && response.data.value.allUsers) {
-    allUsers = response.data.value.allUsers
-  }
+    if (response.data.value && response.data.value.allUsers) {
+      allUsers = response.data.value.allUsers
+    }
 
-} catch (error: unknown) {
+  } catch (error: unknown) {
     const localError = error as ApolloError
     requestError = localError.message
+  }
 }
 
 function getRowItems(row: Row<User>) {
@@ -202,6 +204,8 @@ const pagination = ref({
   pageSize: 10
 })
 
+await getAllUsers()
+
 onMounted(async () => {
   if (requestError) {
     toast.add({
@@ -223,7 +227,7 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <CustomersAddModal />
+          <CustomersAddModal @refresh-users-list="getAllUsers()" />
         </template>
       </UDashboardNavbar>
     </template>
