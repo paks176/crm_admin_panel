@@ -25,12 +25,14 @@ const columnFilters = ref([{
 const columnVisibility = ref()
 const rowSelection = ref({ 1: true })
 
-const { data, refresh } = await useAsyncQuery(ALL_USERS)
+const response: QueryResponse<'allUsers', []> = await useAsyncQuery(ALL_USERS)
+
+let allUsers: Ref<User[] | []> = computed(() => response?.data?.value?.allUsers || [])
 
 const refreshHandler = async () => {
   try {
     requestError.value = ''
-    await refresh()
+    await response.refresh()
 
     toast.add({
       title: 'Список пользователей обновлен',
@@ -49,8 +51,6 @@ const refreshHandler = async () => {
     })
   }
 }
-
-let allUsers: Ref<User[] | []> = computed(() => data.value?.allUsers || [])
 
 function getRowItems(row: Row<User>) {
   return [
@@ -202,11 +202,6 @@ const name = computed({
   set: (value: string) => {
     table.value?.tableApi?.getColumn('name')?.setFilterValue(value || undefined)
   }
-})
-
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 40
 })
 
 onMounted(async () => {

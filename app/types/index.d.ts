@@ -7,7 +7,9 @@ export type MutationResponse<K extends string, T> = {
 export type QueryResponse<K extends string, T> = {
   data: {
     value: Record<K, T>
-  }}
+  }
+  refresh: Function
+}
 
 export interface GraphQlEntity {
   id :ID

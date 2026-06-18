@@ -6,7 +6,6 @@
     <slot/>
   </div>
 
-
   <NotificationsSlideover/>
 </template>
 

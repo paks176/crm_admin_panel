@@ -63,7 +63,6 @@ watch(() => open.value, () => {
     state.email = ''
     state.password = ''
     if (isUserCreated.value) {
-      console.log('emit refreshUsersList')
       emits('refreshUsersList')
     }
   }
