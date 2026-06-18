@@ -4,7 +4,6 @@ import type { Row } from '@tanstack/table-core'
 import type { User, ApolloError, QueryResponse } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
-import { getPaginationRowModel } from '@tanstack/table-core'
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
@@ -26,19 +25,12 @@ const columnFilters = ref([{
 const columnVisibility = ref()
 const rowSelection = ref({ 1: true })
 
-const { data, refresh } = await useAsyncQuery(ALL_USERS, {
-  pagination: {
-    perPage: 20,
-    page: 0
-  },
-})
+const { data, refresh } = await useAsyncQuery(ALL_USERS)
 
 const refreshHandler = async () => {
   try {
     requestError.value = ''
     await refresh()
-
-    console.log('Данные успешно обновлены:', data.value)
 
     toast.add({
       title: 'Список пользователей обновлен',
@@ -214,7 +206,7 @@ const name = computed({
 
 const pagination = ref({
   pageIndex: 0,
-  pageSize: 10
+  pageSize: 40
 })
 
 onMounted(async () => {
@@ -315,10 +307,6 @@ onMounted(async () => {
           v-model:column-filters="columnFilters"
           v-model:column-visibility="columnVisibility"
           v-model:row-selection="rowSelection"
-          v-model:pagination="pagination"
-          :pagination-options="{
-          getPaginationRowModel: getPaginationRowModel()
-        }"
           class="shrink-0"
           :data="allUsers"
           :columns="columns"
@@ -336,15 +324,6 @@ onMounted(async () => {
           <div class="text-sm text-muted">
             {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
             {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <UPagination
-              :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-              :total="table?.tableApi?.getFilteredRowModel().rows.length"
-              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
-            />
           </div>
         </div>
     </template>
