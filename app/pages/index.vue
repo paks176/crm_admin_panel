@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type { User, ApolloError, QueryResponse } from '~/types'
+import type {User, ApolloError, QueryResponse, Role, GroupShort} from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { upperFirst } from 'scule'
+import { format } from 'date-fns'
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UCheckbox = resolveComponent('UCheckbox')
+const UBadge = resolveComponent('UBadge')
 
 const toast = useToast()
 const table = useTemplateRef('table')
@@ -121,15 +123,48 @@ const columns: Ref<TableColumn<User>[]> = ref([
     header: 'Имя',
   },
   {
+    accessorKey: 'roles',
+    header: 'Роли',
+    cell: ({ row }) => {
+      const roles: Role[] = row.getValue('roles')
+      if (roles.length) {
+        const badges = roles.map((role) => {
+          const color = role.name === 'Администратор' ? 'info' : 'primary'
+          return h(UBadge, { variant: 'soft', color: color, label: role.name })
+        })
+        return h('div', { class: 'flex flex-wrap gap-2' }, badges)
+      }
+    }
+  },
+  {
+    accessorKey: 'groups',
+    header: 'Группы',
+    cell: ({ row }) => {
+      const groups: GroupShort[] = row.getValue('groups')
+      if (groups.length) {
+        const badges = groups.map((group) => {
+          const color = group.name === 'Администратор' ? 'secondary' : 'success'
+          return h(UBadge, { variant: 'solid', color: color, label: group.name })
+        })
+        return h('div', { class: 'flex flex-wrap gap-2' }, badges)
+      }
+    }
+  },
+  {
     accessorKey: 'created_date',
     header: 'Дата создания',
-    cell: ({ row }) => { return row.created_date }
+    cell: ({ row }) => format(new Date(row.getValue('created_date')), 'HH:mm dd.MM.yyyy')
+  },
+  {
+    accessorKey: 'updated_date',
+    header: 'Дата обновления',
+    cell: ({ row }) => format(new Date(row.getValue('updated_date')), 'HH:mm dd.MM.yyyy')
   },
   {
     accessorKey: 'banned',
     header: 'Заблокирован',
     cell: ({ row }) => {
-      if (row.banned) {
+      if (row.getValue('banned')) {
         return 'Да'
       } else return 'Нет'
     }
@@ -180,21 +215,6 @@ const columns: Ref<TableColumn<User>[]> = ref([
   }
 ])
 
-const statusFilter = ref('all')
-
-watch(() => statusFilter.value, (newVal) => {
-  if (!table?.value?.tableApi) return
-
-  const statusColumn = table.value.tableApi.getColumn('status')
-  if (!statusColumn) return
-
-  if (newVal === 'all') {
-    statusColumn.setFilterValue(undefined)
-  } else {
-    statusColumn.setFilterValue(newVal)
-  }
-})
-
 const name = computed({
   get: (): string => {
     return (table.value?.tableApi?.getColumn('name')?.getFilterValue() as string) || ''
@@ -243,7 +263,7 @@ onMounted(async () => {
             <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
               <UButton
                 v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-                label="Delete"
+                label="Удалить пользователей"
                 color="error"
                 variant="subtle"
                 icon="i-lucide-trash"
@@ -256,25 +276,13 @@ onMounted(async () => {
               </UButton>
             </CustomersDeleteModal>
 
-            <USelect
-              v-model="statusFilter"
-              :items="[
-              { label: 'All', value: 'all' },
-              { label: 'Subscribed', value: 'subscribed' },
-              { label: 'Unsubscribed', value: 'unsubscribed' },
-              { label: 'Bounced', value: 'bounced' }
-            ]"
-              :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
-              placeholder="Filter status"
-              class="min-w-28"
-            />
             <UDropdownMenu
               :items="
               table?.tableApi
                 ?.getAllColumns()
-                .filter((column: any) => column.getCanHide())
+                .filter((column: any) => (column.getCanHide() && typeof(column.columnDef.header) === 'string'))
                 .map((column: any) => ({
-                  label: upperFirst(column.id),
+                  label: column.columnDef.header,
                   type: 'checkbox' as const,
                   checked: column.getIsVisible(),
                   onUpdateChecked(checked: boolean) {
@@ -288,7 +296,7 @@ onMounted(async () => {
               :content="{ align: 'end' }"
             >
               <UButton
-                label="Display"
+                label="Настроить столбцы"
                 color="neutral"
                 variant="outline"
                 trailing-icon="i-lucide-settings-2"
@@ -305,6 +313,7 @@ onMounted(async () => {
           class="shrink-0"
           :data="allUsers"
           :columns="columns"
+          sticky
           :ui="{
           base: 'table-fixed border-separate border-spacing-0',
           thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
