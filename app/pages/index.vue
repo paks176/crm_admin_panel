@@ -99,10 +99,6 @@ function getRowItems(row: Row<User>) {
   ]
 }
 
-function viewUser(id: string) {
-  console.log(id)
-}
-
 const columns: Ref<TableColumn<User>[]> = ref([
   {
     id: 'select',
@@ -127,6 +123,7 @@ const columns: Ref<TableColumn<User>[]> = ref([
     header: 'Имя',
     cell: ({ row }) => {
       return h('span', {
+        class: 'cursor-pointer underline',
         onClick: () => userToShow.value = row.original
       }, row.getValue('name'))
     }
@@ -245,7 +242,7 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <UsersViewModal :user="userToShow" />
+          <UsersViewModal :user="userToShow" @after:leave="userToShow = null"/>
           <UsersAddModal @refresh-users-list="refreshHandler()" />
         </template>
       </UDashboardNavbar>

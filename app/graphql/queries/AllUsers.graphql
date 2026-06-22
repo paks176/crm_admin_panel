@@ -14,5 +14,6 @@ query AllUsers ($page: Int, $perPage: Int, $filter: UserFilter) {
     }
     created_date
     updated_date
+    avatar
   }
 }
