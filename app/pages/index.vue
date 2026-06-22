@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/table-core'
-import type {User, ApolloError, QueryResponse, Role, GroupShort} from '~/types'
+import type { User, ApolloError, QueryResponse, Role, GroupShort } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
-import { upperFirst } from 'scule'
 import { format } from 'date-fns'
 
 const UButton = resolveComponent('UButton')
@@ -14,6 +13,7 @@ const UBadge = resolveComponent('UBadge')
 const toast = useToast()
 const table = useTemplateRef('table')
 const requestError = ref('')
+const userToShow: Ref<User | null> = ref(null)
 
 useHead({
   title: 'Пользователи'
@@ -99,6 +99,10 @@ function getRowItems(row: Row<User>) {
   ]
 }
 
+function viewUser(id: string) {
+  console.log(id)
+}
+
 const columns: Ref<TableColumn<User>[]> = ref([
   {
     id: 'select',
@@ -121,6 +125,11 @@ const columns: Ref<TableColumn<User>[]> = ref([
   {
     accessorKey: 'name',
     header: 'Имя',
+    cell: ({ row }) => {
+      return h('span', {
+        onClick: () => userToShow.value = row.original
+      }, row.getValue('name'))
+    }
   },
   {
     accessorKey: 'roles',
@@ -153,12 +162,12 @@ const columns: Ref<TableColumn<User>[]> = ref([
   {
     accessorKey: 'created_date',
     header: 'Дата создания',
-    cell: ({ row }) => format(new Date(row.getValue('created_date')), 'HH:mm dd.MM.yyyy')
+    cell: ({ row }) => format(new Date(row.getValue('created_date')), 'HH:mm / dd.MM.yyyy')
   },
   {
     accessorKey: 'updated_date',
     header: 'Дата обновления',
-    cell: ({ row }) => format(new Date(row.getValue('updated_date')), 'HH:mm dd.MM.yyyy')
+    cell: ({ row }) => format(new Date(row.getValue('updated_date')), 'HH:mm / dd.MM.yyyy')
   },
   {
     accessorKey: 'banned',
@@ -171,20 +180,11 @@ const columns: Ref<TableColumn<User>[]> = ref([
   },
   {
     accessorKey: 'email',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-
+    header: () => {
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
-        label: 'Почта (логин)',
-        icon: isSorted
-          ? isSorted === 'asc'
-            ? 'i-lucide-arrow-up-narrow-wide'
-            : 'i-lucide-arrow-down-wide-narrow'
-          : 'i-lucide-arrow-up-down',
-        class: '-mx-2.5',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        label: 'Почта (логин)'
       })
     }
   },
@@ -245,7 +245,8 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <CustomersAddModal @refresh-users-list="refreshHandler()" />
+          <UsersViewModal :user="userToShow" />
+          <UsersAddModal @refresh-users-list="refreshHandler()" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -258,9 +259,8 @@ onMounted(async () => {
           icon="i-lucide-search"
           placeholder="Найти по имени"
         />
-
           <div class="flex flex-wrap items-center gap-1.5">
-            <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
+            <UsersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
               <UButton
                 v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
                 label="Удалить пользователей"
@@ -274,7 +274,7 @@ onMounted(async () => {
                   </UKbd>
                 </template>
               </UButton>
-            </CustomersDeleteModal>
+            </UsersDeleteModal>
 
             <UDropdownMenu
               :items="
@@ -304,6 +304,7 @@ onMounted(async () => {
             </UDropdownMenu>
           </div>
         </div>
+
         <UTable
           ref="table"
           :key="allUsers.length"

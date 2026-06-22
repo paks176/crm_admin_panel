@@ -1,0 +1,17 @@
+query User ($id: !ID) {
+  User (id: $id) {
+    _id
+    avatar
+    banned
+    created_date
+    email
+    groups
+    id
+    info
+    name
+    roles
+    service
+    settings
+    updated_date
+  }
+}

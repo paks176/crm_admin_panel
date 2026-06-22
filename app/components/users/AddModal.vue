@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import {email} from "zod"; ToDo: разобраться в валидации Zod
 import createUserService from "~/graphql/services/createUserService.js"
-import type {ApolloError, MutationResponse} from "~/types";
+import type { ApolloError } from "~/types";
 
 const emits = defineEmits(['refreshUsersList'])
 

@@ -32,7 +32,20 @@ export interface GroupShort extends GraphQlEntity {
 
 // ToDo: interface GroupFull
 
+export type Avatar = {
+  _id: ID
+  file_id: ID
+  filename: String
+  id: ID
+  minimalR: Number
+  minimalX: Number
+  minimalY: Number
+  user_id: ID
+}
+
 export interface User extends GraphQlEntity {
+  id: ID
+  avatar: Avatar
   name: string
   email: string
   banned: boolean
