@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Row } from '@tanstack/table-core'
 import type { User, ApolloError, QueryResponse, Role, GroupShort } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { format } from 'date-fns'
@@ -20,12 +19,12 @@ useHead({
 })
 
 const columnFilters = ref([{
-  id: 'email',
+  id: 'name',
   value: ''
 }])
 
 const columnVisibility = ref()
-const rowSelection = ref({ 1: true })
+const rowSelection = ref({})
 
 const response: QueryResponse<'allUsers', []> = await useAsyncQuery(ALL_USERS)
 
@@ -52,51 +51,6 @@ const refreshHandler = async () => {
       color: 'error'
     })
   }
-}
-
-function getRowItems(row: Row<User>) {
-  return [
-    {
-      type: 'label',
-      label: 'Actions'
-    },
-    {
-      label: 'Copy customer ID',
-      icon: 'i-lucide-copy',
-      onSelect() {
-        navigator.clipboard.writeText(row.original.id.toString())
-        toast.add({
-          title: 'Copied to clipboard',
-          description: 'Customer ID copied to clipboard'
-        })
-      }
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'View customer details',
-      icon: 'i-lucide-list'
-    },
-    {
-      label: 'View customer payments',
-      icon: 'i-lucide-wallet'
-    },
-    {
-      type: 'separator'
-    },
-    {
-      label: 'Delete customer',
-      icon: 'i-lucide-trash',
-      color: 'error',
-      onSelect() {
-        toast.add({
-          title: 'Customer deleted',
-          description: 'The customer has been deleted.'
-        })
-      }
-    }
-  ]
 }
 
 const columns: Ref<TableColumn<User>[]> = ref([
@@ -223,31 +177,6 @@ const columns: Ref<TableColumn<User>[]> = ref([
   {
     accessorKey: 'email',
     header: 'Email (логин)',
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-right' },
-        h(
-          UDropdownMenu,
-          {
-            content: {
-              align: 'end'
-            },
-            items: getRowItems(row)
-          },
-          () =>
-            h(UButton, {
-              icon: 'i-lucide-ellipsis-vertical',
-              color: 'neutral',
-              variant: 'ghost',
-              class: 'ml-auto'
-            })
-        )
-      )
-    }
   }
 ])
 
@@ -296,10 +225,42 @@ onMounted(async () => {
           placeholder="Найти по имени"
         />
           <div class="flex flex-wrap items-center gap-1.5">
+            <UsersEditGroupsModal :users="table?.tableApi?.getFilteredSelectedRowModel().rows || []">
+              <UButton
+                v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
+                label="Добавить/убрать группы"
+                color="primary"
+                variant="subtle"
+                icon="i-lucide-users"
+              >
+                <template #trailing>
+                  <UKbd>
+                    {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
+                  </UKbd>
+                </template>
+              </UButton>
+            </UsersEditGroupsModal>
+
+            <UsersEditRolesModal :users="table?.tableApi?.getFilteredSelectedRowModel().rows || []">
+              <UButton
+                v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
+                label="Добавить/убрать роли"
+                color="info"
+                variant="subtle"
+                icon="i-oui-app-users-roles"
+              >
+                <template #trailing>
+                  <UKbd>
+                    {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
+                  </UKbd>
+                </template>
+              </UButton>
+            </UsersEditRolesModal>
+
             <UsersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
               <UButton
                 v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-                label="Удалить пользователей"
+                label="Удалить"
                 color="error"
                 variant="subtle"
                 icon="i-lucide-trash"
