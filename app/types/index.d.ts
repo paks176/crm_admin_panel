@@ -22,12 +22,21 @@ export type ApolloError = {
   stack: string
 }
 
+// ----------------------------------------------------
+
 export interface Role extends GraphQlEntity {
   name: string
 }
 
 export interface GroupShort extends GraphQlEntity {
   name: string
+}
+
+export type Group = {
+  id: ID
+  name: string
+  parent_id: ID
+  supervisors: User[]
 }
 
 // ToDo: interface GroupFull

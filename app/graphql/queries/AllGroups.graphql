@@ -1,0 +1,24 @@
+query AllGroups {
+  allGroups {
+    id
+    name
+    parent_id
+    supervisors {
+      id
+      name
+      email
+      banned
+      groups {
+        id
+        name
+      }
+      roles {
+        id
+        name
+      }
+      created_date
+      updated_date
+      avatar
+    }
+  }
+}

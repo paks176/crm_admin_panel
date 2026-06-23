@@ -13,7 +13,7 @@ const links = [{
 }, {
   label: 'Группы',
   icon: 'i-lucide-users',
-  to: '/inbox',
+  to: '/groups',
   onSelect: () => {
     open.value = false
   }
