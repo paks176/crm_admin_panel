@@ -51,7 +51,7 @@ watch(() => $props.user, () => {
           <div class="user-card__item flex gap-4 my-5">
             <p>Роли:</p>
             <template v-if="user?.roles.length">
-              <div class="flex wrap gap-2">
+              <div class="flex flex-wrap gap-2">
                 <UBadge
                   v-for="role in user?.roles"
                   :label="role.name"
@@ -60,7 +60,11 @@ watch(() => $props.user, () => {
                   :color="role.name === 'Администратор' ? 'info' : 'primary'"
                 >
                   <template #trailing>
-                    <UButton icon="boxicons-trash-filled" class="cursor-pointer rounded-none" variant="soft"/>
+                    <UButton
+                      icon="boxicons-trash-filled"
+                      class="cursor-pointer rounded-none"
+                      variant="soft"
+                    />
                   </template>
                 </UBadge>
                 <UButton icon="ic-outline-plus" class="cursor-pointer" />
@@ -74,7 +78,7 @@ watch(() => $props.user, () => {
           <div class="user-card__item flex gap-4 my-5">
             <p>Группы:</p>
             <template v-if="user?.roles.length">
-              <div class="flex wrap gap-2">
+              <div class="flex flex-wrap gap-2">
                 <UBadge
                   v-for="group in user?.groups"
                   :label="group.name"
@@ -83,7 +87,11 @@ watch(() => $props.user, () => {
                   :color="group.name === 'Администратор' ? 'secondary' : 'success'"
                 >
                   <template #trailing>
-                    <UButton icon="boxicons-trash-filled" class="cursor-pointer rounded-none" variant="soft"/>
+                    <UButton
+                      icon="boxicons-trash-filled"
+                      class="cursor-pointer rounded-none"
+                      variant="soft"
+                    />
                   </template>
                 </UBadge>
                 <UButton icon="ic-outline-plus" class="cursor-pointer" />

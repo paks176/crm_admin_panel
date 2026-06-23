@@ -120,10 +120,25 @@ const columns: Ref<TableColumn<User>[]> = ref([
   },
   {
     accessorKey: 'name',
-    header: 'Имя',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Имя',
+        icon: isSorted
+          ? isSorted === 'asc'
+            ? 'i-lucide-arrow-up-narrow-wide'
+            : 'i-lucide-arrow-down-wide-narrow'
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     cell: ({ row }) => {
       return h('span', {
-        class: 'cursor-pointer underline',
+        class: 'cursor-pointer underline hover:text-primary',
         onClick: () => userToShow.value = row.original
       }, row.getValue('name'))
     }
@@ -158,12 +173,42 @@ const columns: Ref<TableColumn<User>[]> = ref([
   },
   {
     accessorKey: 'created_date',
-    header: 'Дата создания',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Дата создания',
+        icon: isSorted
+          ? isSorted === 'asc'
+            ? 'i-lucide-arrow-up-narrow-wide'
+            : 'i-lucide-arrow-down-wide-narrow'
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     cell: ({ row }) => format(new Date(row.getValue('created_date')), 'HH:mm / dd.MM.yyyy')
   },
   {
     accessorKey: 'updated_date',
-    header: 'Дата обновления',
+    header: ({ column }) => {
+      const isSorted = column.getIsSorted()
+
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Дата обновления',
+        icon: isSorted
+          ? isSorted === 'asc'
+            ? 'i-lucide-arrow-up-narrow-wide'
+            : 'i-lucide-arrow-down-wide-narrow'
+          : 'i-lucide-arrow-up-down',
+        class: '-mx-2.5',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+      })
+    },
     cell: ({ row }) => format(new Date(row.getValue('updated_date')), 'HH:mm / dd.MM.yyyy')
   },
   {
@@ -177,13 +222,7 @@ const columns: Ref<TableColumn<User>[]> = ref([
   },
   {
     accessorKey: 'email',
-    header: () => {
-      return h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        label: 'Почта (логин)'
-      })
-    }
+    header: 'Email (логин)',
   },
   {
     id: 'actions',
