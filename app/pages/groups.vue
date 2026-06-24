@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type {Group, ApolloError, QueryResponse, User} from '~/types'
+import type { Group, ApolloError, QueryResponse, User } from '~/types'
 import ALL_GROUPS from '~/graphql/queries/AllGroups.graphql'
 
 const UButton = resolveComponent('UButton')
@@ -146,7 +146,7 @@ onMounted(async () => {
 
         <template #right>
 <!--          <UsersViewModal :user="userToShow" @after:leave="userToShow = null"/>-->
-<!--          <UsersAddModal @refresh-users-list="refreshHandler()" />-->
+          <GroupsAddModal @refresh-groups-list="refreshHandler()" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -258,9 +258,9 @@ onMounted(async () => {
       />
 
       <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
-        <div class="text-sm text-muted">
-          {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-          {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+        <div v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length" class="text-sm text-muted">
+          {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length}} из
+          {{ table?.tableApi?.getFilteredRowModel().rows.length }} строк выбрано.
         </div>
       </div>
     </template>

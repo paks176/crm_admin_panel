@@ -323,9 +323,9 @@ onMounted(async () => {
         />
 
         <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
-          <div class="text-sm text-muted">
-            {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-            {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+          <div v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length" class="text-sm text-muted">
+            {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} из
+            {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} строк выбрано.
           </div>
         </div>
     </template>

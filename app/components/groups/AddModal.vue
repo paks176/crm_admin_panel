@@ -3,23 +3,21 @@
 import createUserService from "~/graphql/services/createUserService.js"
 import type { ApolloError } from "~/types";
 
-const emits = defineEmits(['refreshUsersList'])
+const emits = defineEmits(['refreshGroupsList'])
 
 const open = ref(false)
 
 const state = reactive({
   name: '',
-  email: '',
-  password: ''
+  parent_id: '',
+  supervisor_id: ''
 })
 
-const isFormFilled = computed(() => {
-  return state.name.length >= 2 && state.email.length >= 3 && state.password.length >= 4
-})
+const isFormFilled = computed(() => state.name.length >= 2)
 
 const toast = useToast()
 
-const isUserCreated = ref(false)
+const isGroupCreated = ref(false)
 
 const isLoading = ref(false)
 
@@ -42,7 +40,7 @@ const createUser = async () => {
       password: state.password
     })
     isLoading.value = false
-    isUserCreated.value = true
+    isGroupCreated.value = true
 
   } catch (error: unknown) {
     const localError = error as ApolloError
@@ -62,7 +60,7 @@ watch(() => open.value, () => {
     state.name = ''
     state.email = ''
     state.password = ''
-    if (isUserCreated.value) {
+    if (isGroupCreated.value) {
       emits('refreshUsersList')
     }
   }
@@ -70,12 +68,12 @@ watch(() => open.value, () => {
 </script>
 
 <template>
-  <UModal v-model:open="open" title="Новый пользователь">
-    <UButton label="Добавить пользователя" icon="i-lucide-plus" />
+  <UModal v-model:open="open" title="Новая группа">
+    <UButton label="Добавить группу" icon="i-lucide-plus" />
 
     <template #body>
       <UForm
-        v-if="!isUserCreated"
+        v-if="!isGroupCreated"
         :state="state"
         class="space-y-4 relative"
       >
@@ -119,7 +117,7 @@ watch(() => open.value, () => {
       </UForm>
 
       <UCard
-        v-if="isUserCreated"
+        v-if="isGroupCreated"
         title="Созданный пользователь"
         variant="soft"
         class="relative"
@@ -140,7 +138,7 @@ watch(() => open.value, () => {
       </UCard>
 
       <div class="flex justify-end gap-2 mt-6">
-        <template v-if="!isUserCreated">
+        <template v-if="!isGroupCreated">
           <UButton
             label="Отмена"
             color="neutral"
@@ -158,7 +156,7 @@ watch(() => open.value, () => {
         </template>
 
         <UButton
-          v-if="isUserCreated"
+          v-if="isGroupCreated"
           label="Скопировать данные"
           color="info"
           variant="solid"
