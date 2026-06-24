@@ -21,23 +21,13 @@ const isGroupCreated = ref(false)
 
 const isLoading = ref(false)
 
-const copyUserData = () => {
-  const message = `Имя: ${ state.name }\nEmail (логин): ${ state.email }\nПароль: ${ state.password }`
-  navigator.clipboard.writeText(message)
-  toast.add({
-    title: 'Данные пользователя скопированы',
-    icon: 'i-lucide-check',
-    color: 'info'
-  })
-}
-
 const createUser = async () => {
   isLoading.value = true
   try {
     await createUserService({
       name: state.name,
-      email: state.email,
-      password: state.password
+      parent_id: state.parent_id,
+      supervisor_id: state.supervisor_id
     })
     isLoading.value = false
     isGroupCreated.value = true
@@ -58,10 +48,10 @@ const createUser = async () => {
 watch(() => open.value, () => {
   if (!open.value) {
     state.name = ''
-    state.email = ''
-    state.password = ''
+    state.parent_id = ''
+    state.supervisor_id = ''
     if (isGroupCreated.value) {
-      emits('refreshUsersList')
+      emits('refreshGroupsList')
     }
   }
 })
@@ -81,22 +71,6 @@ watch(() => open.value, () => {
         <UFormField label="Имя" name="name">
           <UInput
             v-model="state.name"
-            class="w-full"
-            :disabled="isLoading"
-          />
-        </UFormField>
-
-        <UFormField label="Email" name="email">
-          <UInput
-            v-model="state.email"
-            class="w-full"
-            :disabled="isLoading"
-          />
-        </UFormField>
-
-        <UFormField label="Пароль" name="password">
-          <UInput
-            v-model="state.password"
             class="w-full"
             :disabled="isLoading"
           />
@@ -154,16 +128,6 @@ watch(() => open.value, () => {
             @click="createUser"
           />
         </template>
-
-        <UButton
-          v-if="isGroupCreated"
-          label="Скопировать данные"
-          color="info"
-          variant="solid"
-          type="submit"
-          icon="solar-copy-bold"
-          @click="copyUserData"
-        />
       </div>
     </template>
   </UModal>
