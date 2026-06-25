@@ -198,6 +198,7 @@ onMounted(async () => {
       close: true
     })
   }
+  console.log(allUsers.value)
 })
 </script>
 

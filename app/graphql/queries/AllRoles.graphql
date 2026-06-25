@@ -1,0 +1,7 @@
+query AllRoles {
+  allRoles {
+    id
+    name
+    documents
+  }
+}

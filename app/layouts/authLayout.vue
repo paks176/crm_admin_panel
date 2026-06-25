@@ -20,7 +20,7 @@ const links = [{
 }, {
   label: 'Роли',
   icon: 'oui-app-users-roles',
-  to: '/customers',
+  to: '/roles',
   onSelect: () => {
     open.value = false
   }

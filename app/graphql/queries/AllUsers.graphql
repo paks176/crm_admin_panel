@@ -15,5 +15,15 @@ query AllUsers ($page: Int, $perPage: Int, $filter: UserFilter) {
     created_date
     updated_date
     avatar
+    info {
+      addresses
+      birthday_date
+      emails
+      fullname
+      id
+      phones
+      post
+      user_id
+    }
   }
 }
