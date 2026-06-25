@@ -14,7 +14,6 @@ const user = ref({})
 
 try {
   const response: QueryResponse<'me', object> = await useAsyncQuery(ME)
-
   if (response.data.value.me) {
     user.value = response.data.value.me
   }

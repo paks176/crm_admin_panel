@@ -62,4 +62,13 @@ export interface User extends GraphQlEntity {
   roles: Role[]
   created_date: number
   updated_date: number
+  info: {
+    "emails": string[]
+    "addresses": string[]
+    "birthday_date": number
+    "fullname": string
+    "phones": string[]
+    "post": string
+    "user_id": string
+  }
 }
