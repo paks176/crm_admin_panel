@@ -56,7 +56,6 @@ const switchEdit = (property: string, index?: number | undefined): void => {
   if (index !== undefined) {
     userInfo[property][index].edit = !userInfo[property][index].edit
   } else userInfo[property].edit = !userInfo[property].edit
-  console.log(userInfo[property])
 }
 
 const addFieldAndFocus = (property: string):void => {
@@ -77,8 +76,6 @@ const addFieldAndFocus = (property: string):void => {
           inputs[inputs.length - 1].focus()
         }
       }
-
-      console.log(userInfo[property])
     })
   }
 }
@@ -107,6 +104,29 @@ const clearField = (property: string, index?: number | undefined): void => {
     userInfo[property].value = ''
   }
 }
+
+// ToDo Добавить дату рождения
+
+const hasChanges = computed(() => {
+  // ToDo отслеживание изменений по аватару, логину
+  if ($props.user) {
+    if (
+      userInfo.fullname.value !== $props.user.info.fullname ||
+      userInfo.post.value !== $props.user.info.post
+    ) {
+      return true
+    } else {
+        ['phones', 'addresses', 'emails'].forEach((item) => {
+          if (userInfo[item].some(
+            (localItem, index) => localItem.value !== $props.user[item][index]
+          )) {
+            return true
+          }
+        })
+      }
+    }
+})
+
 watch(() => $props.user, () => {
   if ($props.user && $props.user.id) {
     opened.value = true
@@ -181,6 +201,10 @@ watch(opened, () => {
       }
     ]
   }
+})
+
+watch(hasChanges, () => {
+  console.log(hasChanges.value)
 })
 </script>
 
@@ -372,7 +396,7 @@ watch(opened, () => {
             <hr>
           </div>
 
-          <UButton >Применить изменения</UButton>
+          <UButton :disabled="!hasChanges">Применить изменения</UButton>
         </div>
       </UCard>
     </template>
