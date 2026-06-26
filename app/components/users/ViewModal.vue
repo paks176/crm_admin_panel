@@ -74,7 +74,6 @@ watch(() => $props.user, () => {
         }
       }
     }
-    console.log(userInfo)
   }
 })
 </script>

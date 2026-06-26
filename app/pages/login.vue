@@ -49,38 +49,32 @@ const loginAction = async () => {
 </script>
 
 <template>
-  <h1>Авторизация</h1>
+  <h1 class="font-semibold">Авторизация</h1>
   <form @submit.prevent="loginAction">
-    <input
+    <UInput
+      placeholder="Логин"
       v-model="loginData.email"
-      type="text"
-      placeholder="Email"
-    >
-    <input
+      variant="outline"
+      color="primary"
+    />
+    <UInput
       v-model="loginData.password"
+      placeholder="Пароль"
+      variant="outline"
+      color="primary"
       type="password"
-      placeholder="Password"
-    >
-    <button type="submit">Войти</button>
+    />
+    <UButton variant="solid">
+      Войти
+    </UButton>
   </form>
 </template>
 
 <style scoped>
-input {
-  display: block;
-  border: 1px solid gray;
-}
-
 form {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-}
-
-button {
-  border: 1px solid blue;
-  width: min-content;
-  padding: 5px;
 }
 </style>
