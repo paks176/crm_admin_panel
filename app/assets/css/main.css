@@ -15,6 +15,7 @@
   --color-green-800: #016538;
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
+  --color-gray: gray;
 
   --ui-primary: #114fd3;
   --ui-secondary: #61A4E4;
@@ -29,7 +30,7 @@ button {
 }
 
 hr {
-  border-color: var(--ui-info);
+  border-color: var(--color-gray);
 }
 
 hr.main-divider {

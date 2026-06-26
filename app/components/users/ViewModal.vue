@@ -56,6 +56,7 @@ const switchEdit = (property: string, index?: number | undefined): void => {
   if (index !== undefined) {
     userInfo[property][index].edit = !userInfo[property][index].edit
   } else userInfo[property].edit = !userInfo[property].edit
+  console.log(userInfo[property])
 }
 
 const addFieldAndFocus = (property: string):void => {
@@ -76,11 +77,13 @@ const addFieldAndFocus = (property: string):void => {
           inputs[inputs.length - 1].focus()
         }
       }
+
+      console.log(userInfo[property])
     })
   }
 }
 
-const cancelChange = (property: string, index: number | undefined): void => {
+const cancelChange = (property: string, index?: number | undefined): void => {
   if (index !== undefined) {
     const targetItem = userInfo[property][index]
     if (targetItem) {
@@ -95,6 +98,15 @@ const cancelChange = (property: string, index: number | undefined): void => {
   }
 }
 
+const clearField = (property: string, index?: number | undefined): void => {
+  if (index !== undefined) {
+    if (index === 0) {
+      userInfo[property][0].value = ''
+    } else userInfo[property].splice(index, 1)
+  } else {
+    userInfo[property].value = ''
+  }
+}
 watch(() => $props.user, () => {
   if ($props.user && $props.user.id) {
     opened.value = true
@@ -273,20 +285,30 @@ watch(opened, () => {
                   variant="outline"
                 />
                 <div class="user-card__item__field flex gap-2" v-else>
-                  <p class="font-semibold">
-                    {{ userInfo.fullname.value ?? 'Не заполнено' }}
+                  <p :class="userInfo.fullname.value ? 'font-semibold' : 'italic text-gray'">
+                    {{ userInfo.fullname.value || 'Не заполнено' }}
                   </p>
                   <UButton
                     trailing-icon="uil-pen"
                     size="sm"
                     title="Редактировать"
+                    variant="soft"
                     @click="switchEdit('fullname')"
+                  />
+                  <UButton
+                    v-if="userInfo.fullname.value"
+                    trailing-icon="mdi-cancel-bold"
+                    size="sm"
+                    title="Удалить значение"
+                    variant="soft"
+                    @click="clearField('fullname')"
                   />
                   <UButton
                     v-if="userInfo.fullname.value !== userInfo.fullname.oldValue"
                     trailing-icon="nrk-back"
                     size="sm"
                     title="Отменить изменение"
+                    variant="soft"
                     @click="userInfo.fullname.value = userInfo.fullname.oldValue"
                   />
                 </div>
@@ -307,20 +329,30 @@ watch(opened, () => {
                     name="input-emails"
                   />
                   <template v-else>
-
-                    <p class="font-semibold">{{ emailField.value || 'Не заполнено' }}</p>
+                    <p :class="emailField.value ? 'font-semibold' : 'italic text-gray'">
+                      {{ emailField.value || 'Не заполнено' }}
+                    </p>
                     <div class="flex gap-2">
                       <UButton
                         trailing-icon="uil-pen"
                         size="sm"
                         title="Редактировать"
+                        variant="soft"
                         @click="switchEdit('emails', index)"
                       />
                       <UButton
-                        v-if="userInfo.emails[index].value !== userInfo.emails[index].oldValue"
+                        trailing-icon="mdi-cancel-bold"
+                        size="sm"
+                        title="Удалить значение"
+                        variant="soft"
+                        @click="clearField('emails', index)"
+                      />
+                      <UButton
+                        v-if="userInfo.emails[index].oldValue && (userInfo.emails[index].value !== userInfo.emails[index].oldValue)"
                         trailing-icon="nrk-back"
                         size="sm"
                         title="Отменить изменение"
+                        variant="soft"
                         @click="cancelChange('emails', index)"
                       />
                     </div>
@@ -330,6 +362,7 @@ watch(opened, () => {
                   class="mt-4 w-min whitespace-nowrap"
                   icon="ic-outline-plus"
                   size="sm"
+                  variant="soft"
                   @click="addFieldAndFocus('emails')"
                 >
                   Добавить почту
