@@ -64,7 +64,7 @@ const loginAction = async () => {
       color="primary"
       type="password"
     />
-    <UButton variant="solid">
+    <UButton type="submit" variant="solid">
       Войти
     </UButton>
   </form>

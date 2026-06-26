@@ -23,3 +23,16 @@
   --ui-warning: #F7CE46;
   --ui-error: #E02D3C;
 }
+
+button {
+  cursor: pointer;
+}
+
+hr {
+  border-color: var(--ui-info);
+}
+
+hr.main-divider {
+  border-top-width: 2px;
+  border-color: var(--ui-secondary);
+}
