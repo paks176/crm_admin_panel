@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User } from "~/types";
+import type {User} from "~/types";
 import {format} from "date-fns";
 import {property} from "zod";
 
@@ -58,7 +58,7 @@ const switchEdit = (property: string, index?: number | undefined): void => {
   } else userInfo[property].edit = !userInfo[property].edit
 }
 
-const addFieldAndFocus = (property: string):void => {
+const addFieldAndFocus = (property: string): void => {
   if (property) {
     userInfo[property].forEach((property) => {
       property.edit = false
@@ -107,24 +107,59 @@ const clearField = (property: string, index?: number | undefined): void => {
 
 // ToDo Добавить дату рождения
 
-const hasChanges = computed(() => {
-  // ToDo отслеживание изменений по аватару, логину
-  if ($props.user) {
-    if (
-      userInfo.fullname.value !== $props.user.info.fullname ||
-      userInfo.post.value !== $props.user.info.post
-    ) {
-      return true
+const checkLengthDifference = (): boolean => {
+  let result = false;
+  ['phones', 'addresses', 'emails'].forEach((arrayField) => {
+    if (userInfo[arrayField].length === 1 && $props.user.info[arrayField].length === 0) {
+      result = false
     } else {
-        ['phones', 'addresses', 'emails'].forEach((item) => {
-          if (userInfo[item].some(
-            (localItem, index) => localItem.value !== $props.user[item][index]
-          )) {
-            return true
-          }
-        })
+      if (userInfo[arrayField].some((localItem, index) => {
+          return localItem.value !== $props.user.info[arrayField][index]
+        })) {
+        result = true
       }
     }
+  })
+  return result
+}
+
+const checkAnyLocalChanges = (): boolean => {
+  let result = false;
+
+  ['phones', 'addresses', 'emails'].forEach((arrayField) => {
+    if (userInfo[arrayField].length > 1) {
+      result = true
+      return
+    }
+
+    if (userInfo[arrayField].some((field) => field.value)) {
+      result = true
+    }
+  })
+
+  if (!result) {
+    result = !!(userInfo.post.value || userInfo.fullname.value)
+  }
+
+  return result
+}
+
+const hasChanges = computed(() => {
+  // ToDo отслеживание изменений по аватару, логину
+  let result = false
+  if ($props.user) {
+    if ($props.user.info) {
+      if ($props.user.info?.fullname || $props.user.info?.post) {
+        if ($props.user.info?.fullname && (userInfo.fullname.value !== $props.user.info.fullname)) {
+          result = true
+        }
+        if ($props.user.info?.post && (userInfo.post.value !== $props.user.info.post)) {
+          result = true
+        }
+      } else result = checkLengthDifference()
+    } else result = checkAnyLocalChanges()
+  }
+  return result
 })
 
 watch(() => $props.user, () => {
@@ -202,22 +237,19 @@ watch(opened, () => {
     ]
   }
 })
-
-watch(hasChanges, () => {
-  console.log(hasChanges.value)
-})
 </script>
 
 <template>
-  <UModal v-model:open="opened" :title="user?.name" >
+  <UModal v-model:open="opened" :title="user?.name">
     <template #body>
       <UCard variant="soft">
         <div class="user-card" ref="userFormRef">
           <div class="user-card__top mb-8 flex items-center gap-4">
             <div class="user-card__avatar relative overflow-hidden rounded-[50%] cursor-pointer">
               <img :src="user?.avatar ? user.avatar.file_id : '/images/default_avatar.jpg'" alt="Аватар">
-              <div class="user-card__edit__avatar transition-opacity absolute flex items-center justify-center w-full h-full top-0">
-                <UIcon name="uil-pen" class="size-8" />
+              <div
+                class="user-card__edit__avatar transition-opacity absolute flex items-center justify-center w-full h-full top-0">
+                <UIcon name="uil-pen" class="size-8"/>
               </div>
             </div>
             <h3>
@@ -258,7 +290,7 @@ watch(hasChanges, () => {
                     />
                   </template>
                 </UBadge>
-                <UButton icon="ic-outline-plus" />
+                <UButton icon="ic-outline-plus"/>
               </div>
             </template>
             <template v-else>
@@ -285,7 +317,7 @@ watch(hasChanges, () => {
                     />
                   </template>
                 </UBadge>
-                <UButton icon="ic-outline-plus" />
+                <UButton icon="ic-outline-plus"/>
               </div>
             </template>
             <template v-else>
@@ -387,6 +419,7 @@ watch(hasChanges, () => {
                   icon="ic-outline-plus"
                   size="sm"
                   variant="soft"
+                  v-if="userInfo.emails[0]?.value"
                   @click="addFieldAndFocus('emails')"
                 >
                   Добавить почту
@@ -408,10 +441,12 @@ watch(hasChanges, () => {
   .iconify {
     background-color: white;
   }
+
   &__edit {
     &__avatar {
       opacity: 0;
       background-color: rgba(0, 0, 0, 0.3);
+
       &:hover {
         opacity: 1;
       }
