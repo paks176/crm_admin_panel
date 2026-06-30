@@ -43,14 +43,12 @@ const userInfo = reactive({
       edit: false
     }
   ]),
-  user_id: ref([
-    {
-      value: '',
-      oldValue: '',
-      edit: false
-    }
-  ])
+  user_id: ''
 })
+
+const hasChanges = ref(false)
+
+const isLoading = ref(false)
 
 const switchEdit = (property: string, index?: number | undefined): void => {
   if (index !== undefined) {
@@ -105,10 +103,8 @@ const clearField = (property: string, index?: number | undefined): void => {
   }
 }
 
-const checkIfAnyFocused = (property: string) => {
-  userInfo[property].forEach((item) => {
-
-  })
+const checkIfAllUnfocused = (property: string) => {
+  return !userInfo[property].some((item) => item.edit);
 }
 
 // ToDo Добавить дату рождения
@@ -154,8 +150,6 @@ const checkAnyLocalChanges = (): boolean => {
   return result
 }
 
-const hasChanges = ref(false)
-
 const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
   if ($props.user) {
@@ -175,6 +169,61 @@ const checkChanges = () => {
   }
 }
 
+const getFieldValues = (property: string): String[] | [] => {
+  if (userInfo[property].length) {
+    return userInfo[property].filter((item) => item.value)
+  } else return []
+}
+
+const returnChangedFields = (property: string): String[] | [] => {
+  if ($props.user?.info[property].length) {
+    const stringArrayLocalValues = getFieldValues(property)
+    if (stringArrayLocalValues.length !== $props.user.info[property].length) {
+      return stringArrayLocalValues
+    } else if (stringArrayLocalValues.some((item, index) => item !== $props.user.info[property][index])) {
+      return stringArrayLocalValues
+    } else return []
+  } else if (userInfo[property].length) {
+    return userInfo[property].filter((item) => item.value)
+  } else return []
+}
+
+const updateUserInfo = () => {
+  let requestObject = {}
+
+  if ($props.user.info) {
+    requestObject.user_id = userInfo.user_id
+
+    const standardInfo = $props.user.info
+
+    const changedEmails = returnChangedFields('emails')
+    const changedAddresses = returnChangedFields('addresses')
+    const changedPhones = returnChangedFields('phones')
+
+    requestObject = {
+      user_id: userInfo.user_id,
+      ...(userInfo.fullname.value !== standardInfo.fullname && { fullname: userInfo.fullname.value }),
+      ...(userInfo.post.value !== standardInfo.post && { post: userInfo.post.value }),
+      ...(changedEmails.length && { emails: changedEmails }),
+      ...(changedAddresses.length && { addresses: changedAddresses }),
+      ...(changedPhones.length && { phones: changedPhones }),
+    }
+  } else {
+    const newEmails = getFieldValues('emails')
+    const newAddresses = getFieldValues('addresses')
+    const newPhones = getFieldValues('phones')
+
+    requestObject = {
+      user_id: userInfo.user_id,
+      ...(userInfo.fullname.value && { fullname: userInfo.fullname.value }),
+      ...(userInfo.post.value && { post: userInfo.post.value }),
+      ...(newEmails.length && { emails: newEmails }),
+      ...(newAddresses.length && { addresses: newAddresses }),
+      ...(newPhones.length && { phones: newPhones }),
+    }
+  }
+}
+
 watch(userInfo, () => {
   checkChanges()
 }, { deep: true })
@@ -182,6 +231,7 @@ watch(userInfo, () => {
 watch(() => $props.user, () => {
   if ($props.user && $props.user.id) {
     opened.value = true
+    userInfo.user_id = $props.user.id
     if ($props.user?.info) {
       const outerUserInfo = $props.user.info
       const arrays = ['emails', 'addresses', 'phones']
@@ -224,11 +274,7 @@ watch(opened, () => {
         edit: false
       }
 
-      userInfo.user_id = {
-        value: '',
-        oldValue: '',
-        edit: false
-      }
+      userInfo.user_id = ''
 
       userInfo.emails = [
         {
@@ -440,7 +486,7 @@ watch(opened, () => {
                   icon="ic-outline-plus"
                   size="sm"
                   variant="soft"
-                  v-if="userInfo.emails[0]?.value"
+                  v-if="userInfo.emails[0]?.value && checkIfAllUnfocused('emails')"
                   @click="addFieldAndFocus('emails')"
                 >
                   Добавить почту
@@ -496,7 +542,7 @@ watch(opened, () => {
                   icon="ic-outline-plus"
                   size="sm"
                   variant="soft"
-                  v-if="userInfo.phones[0]?.value"
+                  v-if="userInfo.phones[0]?.value && checkIfAllUnfocused('phones')"
                   @click="addFieldAndFocus('phones')"
                 >
                   Добавить телефон
@@ -552,7 +598,7 @@ watch(opened, () => {
                   icon="ic-outline-plus"
                   size="sm"
                   variant="soft"
-                  v-if="userInfo.addresses[0]?.value"
+                  v-if="userInfo.addresses[0]?.value && checkIfAllUnfocused('addresses')"
                   @click="addFieldAndFocus('addresses')"
                 >
                   Добавить адрес
