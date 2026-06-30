@@ -105,19 +105,29 @@ const clearField = (property: string, index?: number | undefined): void => {
   }
 }
 
+const checkIfAnyFocused = (property: string) => {
+  userInfo[property].forEach((item) => {
+
+  })
+}
+
 // ToDo Добавить дату рождения
 
-const checkLengthDifference = (): boolean => {
+const checkLengthAndValuesDifference = (): boolean => {
   let result = false;
   ['phones', 'addresses', 'emails'].forEach((arrayField) => {
-    if (userInfo[arrayField].length === 1 && $props.user.info[arrayField].length === 0) {
+    if (
+      userInfo[arrayField].length === 1 &&
+      $props.user.info[arrayField].length === 0 &&
+      userInfo[arrayField][0].value === ''
+    ) {
       result = false
     } else {
-      if (userInfo[arrayField].some((localItem, index) => {
-          return localItem.value !== $props.user.info[arrayField][index]
-        })) {
-        result = true
-      }
+      userInfo[arrayField].forEach((item, index) => {
+        if (!$props.user.info[arrayField][index]) {
+          result = !!item.value
+        } else result = item.value !== $props.user.info[arrayField][index]
+      })
     }
   })
   return result
@@ -144,23 +154,30 @@ const checkAnyLocalChanges = (): boolean => {
   return result
 }
 
-const hasChanges = computed(() => {
+const hasChanges = ref(false)
+
+const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
-  let result = false
   if ($props.user) {
     if ($props.user.info) {
       if ($props.user.info?.fullname || $props.user.info?.post) {
         if ($props.user.info?.fullname && (userInfo.fullname.value !== $props.user.info.fullname)) {
-          result = true
+          hasChanges.value = true
+          return
         }
         if ($props.user.info?.post && (userInfo.post.value !== $props.user.info.post)) {
-          result = true
+          hasChanges.value = true
+          return
         }
-      } else result = checkLengthDifference()
-    } else result = checkAnyLocalChanges()
+        hasChanges.value = checkLengthAndValuesDifference()
+      }
+    } else hasChanges.value = checkAnyLocalChanges()
   }
-  return result
-})
+}
+
+watch(userInfo, () => {
+  checkChanges()
+}, { deep: true })
 
 watch(() => $props.user, () => {
   if ($props.user && $props.user.id) {
@@ -194,47 +211,51 @@ watch(() => $props.user, () => {
 
 watch(opened, () => {
   if (!opened.value) {
-    userInfo.fullname = {
-      value: '',
-      oldValue: '',
-      edit: false
-    }
-
-    userInfo.post = {
-      value: '',
-      oldValue: '',
-      edit: false
-    }
-
-    userInfo.user_id = {
-      value: '',
-      oldValue: '',
-      edit: false
-    }
-
-    userInfo.emails = [
-      {
+    nextTick(() => {
+      userInfo.fullname = {
         value: '',
         oldValue: '',
         edit: false
       }
-    ]
 
-    userInfo.phones = [
-      {
+      userInfo.post = {
         value: '',
         oldValue: '',
         edit: false
       }
-    ]
 
-    userInfo.addresses = [
-      {
+      userInfo.user_id = {
         value: '',
         oldValue: '',
         edit: false
       }
-    ]
+
+      userInfo.emails = [
+        {
+          value: '',
+          oldValue: '',
+          edit: false
+        }
+      ]
+
+      userInfo.phones = [
+        {
+          value: '',
+          oldValue: '',
+          edit: false
+        }
+      ]
+
+      userInfo.addresses = [
+        {
+          value: '',
+          oldValue: '',
+          edit: false
+        }
+      ]
+
+      hasChanges.value = false
+    })
   }
 })
 </script>
@@ -263,12 +284,12 @@ watch(opened, () => {
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Дата создания:</p>
-            <p class="font-semibold">{{ format(new Date(user?.created_date), 'HH:mm / dd.MM.yyyy') }}</p>
+            <p class="font-semibold">{{ format(new Date(user?.created_date), 'dd.MM.yyyy / HH:mm') }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Дата изменения:</p>
-            <p class="font-semibold">{{ format(new Date(user?.updated_date), 'HH:mm / dd.MM.yyyy') }}</p>
+            <p class="font-semibold">{{ format(new Date(user?.updated_date), 'dd.MM.yyyy / HH:mm') }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
@@ -423,6 +444,118 @@ watch(opened, () => {
                   @click="addFieldAndFocus('emails')"
                 >
                   Добавить почту
+                </UButton>
+              </div>
+            </div>
+            <hr>
+            <div class="user-card__item flex gap-4 my-5">
+              <p class="w-1/4">Телефоны:</p>
+              <div class="flex flex-col gap-2">
+                <div v-for="(phoneField, index) in userInfo.phones" class="flex gap-2 items-start">
+                  <UInput
+                    v-if="phoneField.edit"
+                    v-model="phoneField.value"
+                    @blur="switchEdit('phones', index)"
+                    @keyup.enter="switchEdit('phones', index)"
+                    @keyup.esc="switchEdit('phones', index)"
+                    variant="outline"
+                    name="input-phones"
+                  />
+                  <template v-else>
+                    <p :class="phoneField.value ? 'font-semibold' : 'italic text-gray'">
+                      {{ phoneField.value || 'Не заполнено' }}
+                    </p>
+                    <div class="flex gap-2">
+                      <UButton
+                        trailing-icon="uil-pen"
+                        size="sm"
+                        title="Редактировать"
+                        variant="soft"
+                        @click="switchEdit('phones', index)"
+                      />
+                      <UButton
+                        trailing-icon="mdi-cancel-bold"
+                        size="sm"
+                        title="Удалить значение"
+                        variant="soft"
+                        @click="clearField('phones', index)"
+                      />
+                      <UButton
+                        v-if="userInfo.phones[index].oldValue && (userInfo.phones[index].value !== userInfo.phones[index].oldValue)"
+                        trailing-icon="nrk-back"
+                        size="sm"
+                        title="Отменить изменение"
+                        variant="soft"
+                        @click="cancelChange('phones', index)"
+                      />
+                    </div>
+                  </template>
+                </div>
+                <UButton
+                  class="mt-4 w-min whitespace-nowrap"
+                  icon="ic-outline-plus"
+                  size="sm"
+                  variant="soft"
+                  v-if="userInfo.phones[0]?.value"
+                  @click="addFieldAndFocus('phones')"
+                >
+                  Добавить телефон
+                </UButton>
+              </div>
+            </div>
+            <hr>
+            <div class="user-card__item flex gap-4 my-5">
+              <p class="w-1/4">Адреса:</p>
+              <div class="flex flex-col gap-2">
+                <div v-for="(addressField, index) in userInfo.addresses" class="flex gap-2 items-start">
+                  <UInput
+                    v-if="addressField.edit"
+                    v-model="addressField.value"
+                    @blur="switchEdit('addresses', index)"
+                    @keyup.enter="switchEdit('addresses', index)"
+                    @keyup.esc="switchEdit('addresses', index)"
+                    variant="outline"
+                    name="input-addresses"
+                  />
+                  <template v-else>
+                    <p :class="addressField.value ? 'font-semibold' : 'italic text-gray'">
+                      {{ addressField.value || 'Не заполнено' }}
+                    </p>
+                    <div class="flex gap-2">
+                      <UButton
+                        trailing-icon="uil-pen"
+                        size="sm"
+                        title="Редактировать"
+                        variant="soft"
+                        @click="switchEdit('addresses', index)"
+                      />
+                      <UButton
+                        trailing-icon="mdi-cancel-bold"
+                        size="sm"
+                        title="Удалить значение"
+                        variant="soft"
+                        @click="clearField('addresses', index)"
+                      />
+                      <UButton
+                        v-if="userInfo.addresses[index].oldValue && (userInfo.addresses[index].value !== userInfo.addresses[index].oldValue)"
+                        trailing-icon="nrk-back"
+                        size="sm"
+                        title="Отменить изменение"
+                        variant="soft"
+                        @click="cancelChange('addresses', index)"
+                      />
+                    </div>
+                  </template>
+                </div>
+                <UButton
+                  class="mt-4 w-min whitespace-nowrap"
+                  icon="ic-outline-plus"
+                  size="sm"
+                  variant="soft"
+                  v-if="userInfo.addresses[0]?.value"
+                  @click="addFieldAndFocus('addresses')"
+                >
+                  Добавить адрес
                 </UButton>
               </div>
             </div>
