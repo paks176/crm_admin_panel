@@ -188,7 +188,7 @@ const returnChangedFields = (property: string): String[] | [] => {
   } else return []
 }
 
-const updateUserInfo = () => {
+const updateUserInfoRequest = () => {
   let requestObject = {}
 
   if ($props.user.info) {
@@ -221,6 +221,11 @@ const updateUserInfo = () => {
       ...(newAddresses.length && { addresses: newAddresses }),
       ...(newPhones.length && { phones: newPhones }),
     }
+  }
+
+  if (Object.keys(requestObject).length > 1) {
+    isLoading.value = true
+    console.log(requestObject)
   }
 }
 
@@ -608,7 +613,12 @@ watch(opened, () => {
             <hr>
           </div>
 
-          <UButton :disabled="!hasChanges">Применить изменения</UButton>
+          <UButton
+            @click="updateUserInfoRequest"
+            :disabled="!hasChanges"
+          >
+            Применить изменения
+          </UButton>
         </div>
       </UCard>
     </template>
