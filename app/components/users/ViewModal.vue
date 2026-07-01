@@ -2,6 +2,7 @@
 import type {ApolloError, User} from "~/types";
 import { format } from "date-fns";
 import updateUserInfoService from "~/graphql/services/updateUserInfoService.js";
+import LoadingCover from "~/components/ui/LoadingCover.vue";
 
 const toast = useToast()
 
@@ -363,7 +364,8 @@ watch(opened, () => {
 <template>
   <UModal v-model:open="opened" :title="user?.name">
     <template #body>
-      <UCard variant="soft">
+      <UCard class="relative" variant="soft">
+        <LoadingCover :show="isLoading" />
         <div class="user-card" ref="userFormRef">
           <div class="user-card__top mb-8 flex items-center gap-4">
             <div class="user-card__avatar relative overflow-hidden rounded-[50%] cursor-pointer">
@@ -739,12 +741,14 @@ watch(opened, () => {
             <hr>
           </div>
 
-          <UButton
-            @click="updateUserInfoRequest"
-            :disabled="!hasChanges"
-          >
-            Применить изменения
-          </UButton>
+          <div class="mt-8 flex justify-end">
+            <UButton
+              @click="updateUserInfoRequest"
+              :disabled="!hasChanges"
+            >
+              Применить изменения
+            </UButton>
+          </div>
         </div>
       </UCard>
     </template>

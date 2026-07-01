@@ -16,6 +16,7 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
   --color-gray: gray;
+  --color-trans-white: rgba(255, 255, 255, 0.7);
 
   --ui-primary: #114fd3;
   --ui-secondary: #61A4E4;
@@ -36,4 +37,11 @@ hr {
 hr.main-divider {
   border-top-width: 2px;
   border-color: var(--ui-secondary);
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0
 }
