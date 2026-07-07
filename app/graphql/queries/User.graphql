@@ -1,17 +1,31 @@
-query User ($id: !ID) {
-  User (id: $id) {
+query User($userId: ID!) {
+  User(id: $userId) {
     _id
-    avatar
-    banned
-    created_date
     email
-    groups
-    id
-    info
     name
-    roles
-    service
+    groups {
+      id
+      name
+    }
+    roles {
+      id
+      name
+    }
+    banned
+    avatar
     settings
+    created_date
     updated_date
+    info {
+      addresses
+      birthday_date
+      emails
+      fullname
+      id
+      phones
+      post
+      user_id
+    }
+    service
   }
 }

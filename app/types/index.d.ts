@@ -54,7 +54,7 @@ export type Avatar = {
 
 export interface User extends GraphQlEntity {
   id: ID
-  avatar: Avatar
+  avatar: null
   name: string
   email: string
   banned: boolean

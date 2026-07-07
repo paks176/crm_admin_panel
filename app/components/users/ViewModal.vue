@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type {ApolloError, User} from "~/types";
+import type {ApolloError, QueryResponse, User} from "~/types";
+import USER from '~/graphql/queries/User.graphql'
 import { format } from "date-fns";
 import updateUserInfoService from "~/graphql/services/updateUserInfoService.js";
 import LoadingCover from "~/components/ui/LoadingCover.vue";
@@ -15,6 +16,30 @@ const opened = ref(false)
 const formRef = useTemplateRef('userFormRef')
 
 let id = ''
+
+const localCopyUser = reactive({
+  id: '',
+  email: '',
+  name: '',
+  groups: [],
+  roles: [],
+  banned: false,
+  avatar: null,
+  settings: {},
+  created_date: 0,
+  updated_date: 0,
+  service: null,
+  info: {
+    addresses: [],
+    birthday_date: 0,
+    emails: [],
+    fullname: '',
+    id: '',
+    phones: [],
+    post: '',
+    user_id: '',
+  }
+})
 
 const userInfo = reactive({
   fullname: ref({
@@ -119,7 +144,7 @@ const checkLengthAndValuesDifference = (): boolean => {
 
   for (const arrayField of fields) {
     const currentField = userInfo[arrayField]
-    const propField = $props.user.info[arrayField]
+    const propField = localCopyUser.info[arrayField]
 
     if (
       currentField.length === 1 &&
@@ -169,7 +194,7 @@ const checkAnyLocalChanges = (): boolean => {
 const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
   if ($props.user) {
-    if ($props.user.info) {
+    if (localCopyUser.info) {
       if ($props.user.info?.fullname || $props.user.info?.post) {
         if ($props.user.info?.fullname && (userInfo.fullname.value !== $props.user.info.fullname)) {
           hasChanges.value = true
@@ -192,7 +217,7 @@ const getFieldValues = (property: string): String[] | [] => {
 }
 
 const returnChangedFields = (property: string): String[] | [] => {
-  if ($props.user?.info[property].length) {
+  if (localCopyUser?.info[property].length) {
     const stringArrayLocalValues = getFieldValues(property)
     if (stringArrayLocalValues.length !== $props.user.info[property].length) {
       return stringArrayLocalValues
@@ -204,14 +229,49 @@ const returnChangedFields = (property: string): String[] | [] => {
   } else return []
 }
 
+const applyUserInfo = () => {
+  userInfo.user_id = localCopyUser.id
+
+  if (localCopyUser?.info) {
+    id = localCopyUser.info.id
+    const outerUserInfo = localCopyUser.info
+    userInfo.user_id = outerUserInfo.user_id
+    const arrays = ['emails', 'addresses', 'phones']
+    for (const key in outerUserInfo) {
+      if (userInfo[key]) {
+        if (arrays.includes(key)) {
+          // для значений массивами
+          if (outerUserInfo[key].length) {
+            userInfo[key] = outerUserInfo[key].map((item) => {
+              return {
+                edit: false,
+                value: item,
+                oldValue: item
+              }
+            })
+          }
+        } else {
+          // для значений строками/числами
+          if (outerUserInfo[key] && key !== 'id' && key !== 'user_id') {
+            userInfo[key].value = outerUserInfo[key]
+            userInfo[key].oldValue = outerUserInfo[key]
+          }
+        }
+      }
+    }
+  } else {
+    id = localCopyUser.id
+  }
+}
+
 const updateUserInfoRequest = async () => {
   let requestObject = {}
 
-  if ($props.user.info) {
+  if (localCopyUser.info) {
     // редактирование существующего userInfo
     requestObject.user_id = userInfo.user_id
 
-    const standardInfo = $props.user.info
+    const standardInfo = localCopyUser.info
 
     const changedEmails = returnChangedFields('emails')
     const changedAddresses = returnChangedFields('addresses')
@@ -245,16 +305,34 @@ const updateUserInfoRequest = async () => {
 
   if (Object.keys(requestObject).length > 1) {
     isLoading.value = true
-    console.log(requestObject)
     try {
       await updateUserInfoService(id, requestObject)
-      isLoading.value = false
+
       toast.add({
         title: 'Успешно',
         description: 'Данные пользователя обновлены',
         icon: 'i-lucide-check',
         color: 'success'
       })
+
+      const updatedUserData: QueryResponse<'User', object> = await useAsyncQuery(USER,
+        {
+          userId: userInfo.user_id
+        }
+      )
+
+      if (updatedUserData.data.value.User) {
+        localCopyUser.value = updatedUserData.data.value.User
+        applyUserInfo()
+        await nextTick(() => {
+          userCardKey.value++
+          console.log(localCopyUser)
+          console.log(userInfo)
+        })
+      }
+
+      isLoading.value = false
+
     } catch (error: unknown) {
       const localError = error as ApolloError
       console.error(localError.message)
@@ -269,48 +347,40 @@ const updateUserInfoRequest = async () => {
   }
 }
 
+const userCardKey = ref(0)
+
+const applyUserData = (userData: User) => {
+  localCopyUser.id = userData._id
+  localCopyUser.avatar = userData.avatar
+  localCopyUser.name = userData.name
+  localCopyUser.banned = userData.banned
+  localCopyUser.groups = userData.groups
+  localCopyUser.roles = userData.roles
+  localCopyUser.settings = userData.settings
+  localCopyUser.created_date = userData.created_date
+  localCopyUser.updated_date = userData.updated_date
+  localCopyUser.service = userData.service
+  localCopyUser.info.addresses = userData.info.addresses
+  localCopyUser.info.birthday_date = userData.info.birthday_date
+  localCopyUser.info.birthday_date = userData.info.birthday_date
+  localCopyUser.info.emails = userData.info.emails
+  localCopyUser.info.fullname = userData.info.fullname
+  localCopyUser.info.id = userData.info.id
+  localCopyUser.info.phones = userData.info.phones
+  localCopyUser.info.post = userData.info.post
+  localCopyUser.info.user_id = userData.info.user_id
+}
+
 watch(userInfo, () => {
   checkChanges()
 }, { deep: true })
 
 watch(() => $props.user, () => {
-  console.log($props.user)
   if ($props.user && $props.user.id) {
+    localCopyUser.value = $props.user
+    applyUserInfo()
+    hasChanges.value = false
     opened.value = true
-    userInfo.user_id = $props.user.id
-
-    if ($props.user?.info) {
-      id = $props.user.info.id
-      const outerUserInfo = $props.user.info
-      userInfo.user_id = outerUserInfo.user_id
-      const arrays = ['emails', 'addresses', 'phones']
-      for (const key in outerUserInfo) {
-        if (userInfo[key]) {
-          if (arrays.includes(key)) {
-            // для значений массивами
-            if (outerUserInfo[key].length) {
-              userInfo[key] = outerUserInfo[key].map((item) => {
-                return {
-                  edit: false,
-                  value: item,
-                  oldValue: item
-                }
-              })
-            }
-          } else {
-            // для значений строками/числами
-            if (outerUserInfo[key] && key !== 'id' && key !== 'user_id') {
-              userInfo[key].value = outerUserInfo[key]
-              userInfo[key].oldValue = outerUserInfo[key]
-            }
-          }
-        }
-      }
-    } else {
-      id = $props.user.id
-    }
-
-    console.log(userInfo)
   }
 })
 
@@ -362,44 +432,44 @@ watch(opened, () => {
 </script>
 
 <template>
-  <UModal v-model:open="opened" :title="user?.name">
+  <UModal v-model:open="opened" :title="localCopyUser?.name">
     <template #body>
       <UCard class="relative" variant="soft">
         <LoadingCover :show="isLoading" />
-        <div class="user-card" ref="userFormRef">
+        <div class="user-card" ref="userFormRef" :key="userCardKey">
           <div class="user-card__top mb-8 flex items-center gap-4">
             <div class="user-card__avatar relative overflow-hidden rounded-[50%] cursor-pointer">
-              <img :src="user?.avatar ? user.avatar.file_id : '/images/default_avatar.jpg'" alt="Аватар">
+              <img :src="localCopyUser?.avatar ? localCopyUser.avatar.file_id : '/images/default_avatar.jpg'" alt="Аватар">
               <div
                 class="user-card__edit__avatar transition-opacity absolute flex items-center justify-center w-full h-full top-0">
                 <UIcon name="uil-pen" class="size-8"/>
               </div>
             </div>
             <h3>
-              {{ user?.name }}
+              {{ localCopyUser?.name }}
             </h3>
           </div>
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Email (Login):</p>
-            <p class="font-semibold">{{ user?.email }}</p>
+            <p class="font-semibold">{{ localCopyUser?.email }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Дата создания:</p>
-            <p class="font-semibold">{{ format(new Date(user?.created_date), 'dd.MM.yyyy / HH:mm') }}</p>
+            <p class="font-semibold">{{ format(new Date(localCopyUser?.created_date), 'dd.MM.yyyy / HH:mm') }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Дата изменения:</p>
-            <p class="font-semibold">{{ format(new Date(user?.updated_date), 'dd.MM.yyyy / HH:mm') }}</p>
+            <p class="font-semibold">{{ format(new Date(localCopyUser?.updated_date), 'dd.MM.yyyy / HH:mm') }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Роли:</p>
-            <template v-if="user?.roles.length">
+            <template v-if="localCopyUser?.roles.length">
               <div class="flex flex-wrap gap-2">
                 <UBadge
-                  v-for="role in user?.roles"
+                  v-for="role in localCopyUser?.roles"
                   :label="role.name"
                   class="pr-0 py-0 gap-2 overflow-hidden"
                   variant="soft"
@@ -423,10 +493,10 @@ watch(opened, () => {
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Группы:</p>
-            <template v-if="user?.roles.length">
+            <template v-if="localCopyUser?.roles.length">
               <div class="flex flex-wrap gap-2">
                 <UBadge
-                  v-for="group in user?.groups"
+                  v-for="group in localCopyUser?.groups"
                   :label="group.name"
                   class="pr-0 py-0 gap-2 overflow-hidden"
                   variant="solid"
