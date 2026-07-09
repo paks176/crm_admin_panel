@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type {ApolloError, QueryResponse, User} from "~/types";
+import type {ApolloError, QueryResponse, User, GroupShort} from "~/types";
 import USER from '~/graphql/queries/User.graphql'
 import { format } from "date-fns";
 import updateUserInfoService from "~/graphql/services/updateUserInfoService.js";
 import LoadingCover from "~/components/ui/LoadingCover.vue";
+import { useApolloClient } from '#imports'
 
 const toast = useToast()
 
@@ -17,8 +18,8 @@ const formRef = useTemplateRef('userFormRef')
 
 let id = ''
 
-const localCopyUser = reactive({
-  id: '',
+const localCopyUser = reactive<User>({
+  _id: '',
   email: '',
   name: '',
   groups: [],
@@ -37,8 +38,9 @@ const localCopyUser = reactive({
     id: '',
     phones: [],
     post: '',
-    user_id: '',
-  }
+    user_id: ''
+  },
+  id: ""
 })
 
 const userInfo = reactive({
@@ -229,41 +231,6 @@ const returnChangedFields = (property: string): String[] | [] => {
   } else return []
 }
 
-const applyUserInfo = () => {
-  userInfo.user_id = localCopyUser.id
-
-  if (localCopyUser?.info) {
-    id = localCopyUser.info.id
-    const outerUserInfo = localCopyUser.info
-    userInfo.user_id = outerUserInfo.user_id
-    const arrays = ['emails', 'addresses', 'phones']
-    for (const key in outerUserInfo) {
-      if (userInfo[key]) {
-        if (arrays.includes(key)) {
-          // для значений массивами
-          if (outerUserInfo[key].length) {
-            userInfo[key] = outerUserInfo[key].map((item) => {
-              return {
-                edit: false,
-                value: item,
-                oldValue: item
-              }
-            })
-          }
-        } else {
-          // для значений строками/числами
-          if (outerUserInfo[key] && key !== 'id' && key !== 'user_id') {
-            userInfo[key].value = outerUserInfo[key]
-            userInfo[key].oldValue = outerUserInfo[key]
-          }
-        }
-      }
-    }
-  } else {
-    id = localCopyUser.id
-  }
-}
-
 const updateUserInfoRequest = async () => {
   let requestObject = {}
 
@@ -306,33 +273,32 @@ const updateUserInfoRequest = async () => {
   if (Object.keys(requestObject).length > 1) {
     isLoading.value = true
     try {
-      await updateUserInfoService(id, requestObject)
+     await updateUserInfoService(id, requestObject)
+       .then(async () => {
+         toast.add({
+           title: 'Успешно',
+           description: 'Данные пользователя обновлены',
+           icon: 'i-lucide-check',
+           color: 'success'
+         })
 
-      toast.add({
-        title: 'Успешно',
-        description: 'Данные пользователя обновлены',
-        icon: 'i-lucide-check',
-        color: 'success'
-      })
+         const { client } = useApolloClient()
 
-      const updatedUserData: QueryResponse<'User', object> = await useAsyncQuery(USER,
-        {
-          userId: userInfo.user_id
-        }
-      )
+         const { data } = await client.query({
+           query: USER,
+           variables: {
+             userId: userInfo.user_id
+           },
+           fetchPolicy: 'no-cache'
+         })
 
-      if (updatedUserData.data.value.User) {
-        localCopyUser.value = updatedUserData.data.value.User
-        applyUserInfo()
-        await nextTick(() => {
-          userCardKey.value++
-          console.log(localCopyUser)
-          console.log(userInfo)
-        })
-      }
+         if (data?.User) {
+           applyUserData(data.User)
+           console.log(data.User.info)
+         }
 
-      isLoading.value = false
-
+         isLoading.value = false
+     })
     } catch (error: unknown) {
       const localError = error as ApolloError
       console.error(localError.message)
@@ -349,10 +315,11 @@ const updateUserInfoRequest = async () => {
 
 const userCardKey = ref(0)
 
-const applyUserData = (userData: User) => {
+const applyUserData = (userData: User): void => {
   localCopyUser.id = userData._id
   localCopyUser.avatar = userData.avatar
   localCopyUser.name = userData.name
+  localCopyUser.email = userData.email
   localCopyUser.banned = userData.banned
   localCopyUser.groups = userData.groups
   localCopyUser.roles = userData.roles
@@ -369,6 +336,39 @@ const applyUserData = (userData: User) => {
   localCopyUser.info.phones = userData.info.phones
   localCopyUser.info.post = userData.info.post
   localCopyUser.info.user_id = userData.info.user_id
+
+  userInfo.user_id = localCopyUser.id
+
+  if (localCopyUser?.info) {
+    id = localCopyUser.info.id
+    const outerUserInfo = localCopyUser.info
+    userInfo.user_id = outerUserInfo.user_id
+    const arrays = ['emails', 'addresses', 'phones']
+    for (const key in outerUserInfo) {
+      if (userInfo[key]) {
+        if (arrays.includes(key)) {
+          // для значений массивами
+          if (outerUserInfo[key].length) {
+            userInfo[key] = outerUserInfo[key].map((item) => {
+              return {
+                edit: false,
+                value: item,
+                oldValue: item
+              }
+            })
+          }
+        } else {
+          // для значений строками/числами
+          if (outerUserInfo[key] && key !== 'id' && key !== 'user_id') {
+            userInfo[key].value = outerUserInfo[key]
+            userInfo[key].oldValue = outerUserInfo[key]
+          }
+        }
+      }
+    }
+  } else {
+    id = localCopyUser.id
+  }
 }
 
 watch(userInfo, () => {
@@ -377,12 +377,11 @@ watch(userInfo, () => {
 
 watch(() => $props.user, () => {
   if ($props.user && $props.user.id) {
-    localCopyUser.value = $props.user
-    applyUserInfo()
+    applyUserData($props.user)
     hasChanges.value = false
     opened.value = true
   }
-})
+}, { once: true })
 
 watch(opened, () => {
   if (!opened.value) {

@@ -14,7 +14,7 @@ export type QueryResponse<K extends string, T> = {
 export interface GraphQlEntity {
   id :ID
   name?: string
-  __typename: string
+  __typename?: string
 }
 
 export type ApolloError = {
@@ -53,15 +53,17 @@ export type Avatar = {
 }
 
 export interface User extends GraphQlEntity {
-  id: ID
+  _id: ID
   avatar: null
   name: string
   email: string
   banned: boolean
-  groups: GroupShort[]
-  roles: Role[]
+  groups: GroupShort[] | []
+  roles: Role[] | []
   created_date: number
   updated_date: number
+  service: object | null // ToDo Type
+  settings: object | null // ToDo Type
   info: {
     emails: string[]
     addresses: string[]
