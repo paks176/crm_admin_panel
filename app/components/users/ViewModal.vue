@@ -9,7 +9,7 @@ import { useApolloClient } from '#imports'
 const toast = useToast()
 
 const $props = defineProps<{
-  user: User | null,
+  userId: string,
 }>()
 
 const opened = ref(false)
@@ -81,6 +81,8 @@ const userInfo = reactive({
 const hasChanges = ref(false)
 
 const isLoading = ref(false)
+
+const { client } = useApolloClient()
 
 const switchEdit = (property: string, index?: number | undefined): void => {
   if (index !== undefined) {
@@ -195,14 +197,14 @@ const checkAnyLocalChanges = (): boolean => {
 
 const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
-  if ($props.user) {
+  if ($props.userId) {
     if (localCopyUser.info) {
-      if ($props.user.info?.fullname || $props.user.info?.post) {
-        if ($props.user.info?.fullname && (userInfo.fullname.value !== $props.user.info.fullname)) {
+      if ($props.userId.info?.fullname || $props.userId.info?.post) {
+        if ($props.userId.info?.fullname && (userInfo.fullname.value !== $props.userId.info.fullname)) {
           hasChanges.value = true
           return
         }
-        if ($props.user.info?.post && (userInfo.post.value !== $props.user.info.post)) {
+        if ($props.userId.info?.post && (userInfo.post.value !== $props.userId.info.post)) {
           hasChanges.value = true
           return
         }
@@ -221,14 +223,40 @@ const getFieldValues = (property: string): String[] | [] => {
 const returnChangedFields = (property: string): String[] | [] => {
   if (localCopyUser?.info[property].length) {
     const stringArrayLocalValues = getFieldValues(property)
-    if (stringArrayLocalValues.length !== $props.user.info[property].length) {
+    if (stringArrayLocalValues.length !== localCopyUser.info[property].length) {
       return stringArrayLocalValues
-    } else if (stringArrayLocalValues.some((item, index) => item !== $props.user.info[property][index])) {
+    } else if (stringArrayLocalValues.some((item, index) => item !== localCopyUser.info[property][index])) {
       return stringArrayLocalValues
     } else return []
   } else if (userInfo[property].length) {
     return userInfo[property].filter((item) => item.value).map((item) => item.value)
   } else return []
+}
+
+const getUser = async (userId: string): Promise<void> => {
+  try {
+    const { data } = await client.query({
+      query: USER,
+      variables: {
+        userId: userId
+      },
+      fetchPolicy: 'no-cache'
+    })
+
+    if (data?.User) {
+      applyUserData(data.User)
+    }
+  } catch (error: unknown) {
+    const localError = error as ApolloError
+    console.error(localError.message)
+    isLoading.value = false
+    toast.add({
+      title: 'Ошибка получения пользователя',
+      description: localError.message,
+      icon: 'i-lucide-check',
+      color: 'error'
+    })
+  }
 }
 
 const updateUserInfoRequest = async () => {
@@ -281,30 +309,14 @@ const updateUserInfoRequest = async () => {
            icon: 'i-lucide-check',
            color: 'success'
          })
-
-         const { client } = useApolloClient()
-
-         const { data } = await client.query({
-           query: USER,
-           variables: {
-             userId: userInfo.user_id
-           },
-           fetchPolicy: 'no-cache'
-         })
-
-         if (data?.User) {
-           applyUserData(data.User)
-           console.log(data.User.info)
-         }
-
-         isLoading.value = false
+         await getUser($props.userId)
      })
     } catch (error: unknown) {
       const localError = error as ApolloError
       console.error(localError.message)
       isLoading.value = false
       toast.add({
-        title: 'Ошибка',
+        title: 'Ошибка изменения данных пользователя',
         description: localError.message,
         icon: 'i-lucide-check',
         color: 'error'
@@ -375,13 +387,12 @@ watch(userInfo, () => {
   checkChanges()
 }, { deep: true })
 
-watch(() => $props.user, () => {
-  if ($props.user && $props.user.id) {
-    applyUserData($props.user)
+watch(() => $props.userId, () => {
+  if ($props.userId) {
     hasChanges.value = false
     opened.value = true
   }
-}, { once: true })
+})
 
 watch(opened, () => {
   if (!opened.value) {
@@ -426,6 +437,12 @@ watch(opened, () => {
 
       hasChanges.value = false
     })
+  }
+})
+
+onBeforeMount(async () => {
+  if ($props.userId) {
+    await getUser($props.userId)
   }
 })
 </script>
