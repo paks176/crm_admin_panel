@@ -12,7 +12,7 @@ const UBadge = resolveComponent('UBadge')
 const toast = useToast()
 const table = useTemplateRef('table')
 const requestError = ref('')
-const userToShow: Ref<User | null> = ref(null)
+const userToShow: Ref<string> = ref('')
 
 useHead({
   title: 'Пользователи'
@@ -93,7 +93,7 @@ const columns: Ref<TableColumn<User>[]> = ref([
     cell: ({ row }) => {
       return h('span', {
         class: 'cursor-pointer underline hover:text-primary',
-        onClick: () => userToShow.value = row.original
+        onClick: () => userToShow.value = row.original.id
       }, row.getValue('name'))
     }
   },
@@ -210,7 +210,7 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <UsersViewModal :user="userToShow" @after:leave="userToShow = null"/>
+          <UsersViewModal :userId="userToShow" @after:leave="userToShow = ''"/>
           <UsersAddModal @refresh-users-list="refreshHandler()" />
         </template>
       </UDashboardNavbar>

@@ -387,10 +387,13 @@ watch(userInfo, () => {
   checkChanges()
 }, { deep: true })
 
-watch(() => $props.userId, () => {
+watch(() => $props.userId, async () => {
   if ($props.userId) {
+    isLoading.value = true
     hasChanges.value = false
     opened.value = true
+    await getUser($props.userId)
+    isLoading.value = false
   }
 })
 
@@ -437,12 +440,6 @@ watch(opened, () => {
 
       hasChanges.value = false
     })
-  }
-})
-
-onBeforeMount(async () => {
-  if ($props.userId) {
-    await getUser($props.userId)
   }
 })
 </script>
