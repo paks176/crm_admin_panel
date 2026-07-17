@@ -3,7 +3,7 @@
 import createUserService from "~/graphql/services/createUserService.js"
 import type { ApolloError } from "~/types";
 
-const emits = defineEmits(['refreshUsersList'])
+const $emits = defineEmits(['refreshUsersList'])
 
 const open = ref(false)
 
@@ -63,7 +63,7 @@ watch(() => open.value, () => {
     state.email = ''
     state.password = ''
     if (isUserCreated.value) {
-      emits('refreshUsersList')
+      $emits('refreshUsersList')
     }
   }
 })

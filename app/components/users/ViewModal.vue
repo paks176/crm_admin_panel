@@ -12,11 +12,22 @@ const $props = defineProps<{
   userId: string,
 }>()
 
+const $emits = defineEmits(['refreshUsersList'])
+
 const opened = ref(false)
 
 const formRef = useTemplateRef('userFormRef')
 
-let id = ''
+const emptyUserInfo = {
+  addresses: [],
+  birthday_date: 0,
+  emails: [],
+  fullname: '',
+  id: '',
+  phones: [],
+  post: '',
+  user_id: ''
+}
 
 const localCopyUser = reactive<User>({
   _id: '',
@@ -176,7 +187,6 @@ const checkLengthAndValuesDifference = (): boolean => {
 
 const checkAnyLocalChanges = (): boolean => {
   let result = false;
-
   ['phones', 'addresses', 'emails'].forEach((arrayField) => {
     if (userInfo[arrayField].length > 1) {
       result = true
@@ -197,7 +207,6 @@ const checkAnyLocalChanges = (): boolean => {
 
 const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
-
   if ($props.userId) {
     if (localCopyUser.info) {
       if (localCopyUser.info?.fullname || localCopyUser.info?.post) {
@@ -217,19 +226,6 @@ const checkChanges = () => {
 
 const getFieldValues = (property: string): String[] | [] => {
   if (userInfo[property].length) {
-    return userInfo[property].filter((item) => item.value).map((item) => item.value)
-  } else return []
-}
-
-const returnChangedFields = (property: string): String[] | [] => {
-  if (localCopyUser?.info[property].length) {
-    const stringArrayLocalValues = getFieldValues(property)
-    if (stringArrayLocalValues.length !== localCopyUser.info[property].length) {
-      return stringArrayLocalValues
-    } else if (stringArrayLocalValues.some((item, index) => item !== localCopyUser.info[property][index])) {
-      return stringArrayLocalValues
-    } else return []
-  } else if (userInfo[property].length) {
     return userInfo[property].filter((item) => item.value).map((item) => item.value)
   } else return []
 }
@@ -262,19 +258,20 @@ const getUser = async (userId: string): Promise<void> => {
 
 const updateUserInfoRequest = async () => {
   let requestObject = {}
+  let infoId = '' // info id
 
   if (localCopyUser.info) {
     // редактирование существующего userInfo
     requestObject.user_id = userInfo.user_id
-
+    infoId = localCopyUser.info.id
     const standardInfo = localCopyUser.info
 
-    const changedEmails = returnChangedFields('emails')
-    const changedAddresses = returnChangedFields('addresses')
-    const changedPhones = returnChangedFields('phones')
+    const changedEmails = getFieldValues('emails')
+    const changedAddresses = getFieldValues('addresses')
+    const changedPhones = getFieldValues('phones')
 
     requestObject = {
-      user_id: userInfo.user_id,
+      user_id: localCopyUser.id,
       birthday_date: 0,
       fullname: userInfo.fullname.value,
       emails: changedEmails,
@@ -287,9 +284,9 @@ const updateUserInfoRequest = async () => {
     const newEmails = getFieldValues('emails')
     const newAddresses = getFieldValues('addresses')
     const newPhones = getFieldValues('phones')
-
+    infoId = localCopyUser.id
     requestObject = {
-      user_id: userInfo.user_id,
+      user_id: localCopyUser.id,
       birthday_date: 0,
       ...(userInfo.fullname.value && { fullname: userInfo.fullname.value }),
       ...(userInfo.post.value && { post: userInfo.post.value }),
@@ -302,7 +299,7 @@ const updateUserInfoRequest = async () => {
   if (Object.keys(requestObject).length > 1) {
     isLoading.value = true
     try {
-     await updateUserInfoService(id, requestObject)
+     await updateUserInfoService(infoId, requestObject)
        .then(async () => {
          toast.add({
            title: 'Успешно',
@@ -310,6 +307,7 @@ const updateUserInfoRequest = async () => {
            icon: 'i-lucide-check',
            color: 'success'
          })
+         resetUserData()
          await getUser($props.userId)
          isLoading.value = false
      })
@@ -329,6 +327,61 @@ const updateUserInfoRequest = async () => {
 
 const userCardKey = ref(0)
 
+const resetUserData = () => {
+  localCopyUser.id = ''
+  localCopyUser.avatar = null
+  localCopyUser.name = ''
+  localCopyUser.email = ''
+  localCopyUser.banned = false
+  localCopyUser.groups = []
+  localCopyUser.roles = []
+  localCopyUser.settings = {}
+  localCopyUser.created_date = 0
+  localCopyUser.updated_date = 0
+  localCopyUser.service = null
+  localCopyUser.info = null
+
+  userInfo.fullname = {
+    value: '',
+    oldValue: '',
+    edit: false
+  }
+
+  userInfo.post = {
+    value: '',
+    oldValue: '',
+    edit: false
+  }
+
+  userInfo.user_id = ''
+
+  userInfo.emails = [
+    {
+      value: '',
+      oldValue: '',
+      edit: false
+    }
+  ]
+
+  userInfo.phones = [
+    {
+      value: '',
+      oldValue: '',
+      edit: false
+    }
+  ]
+
+  userInfo.addresses = [
+    {
+      value: '',
+      oldValue: '',
+      edit: false
+    }
+  ]
+
+  hasChanges.value = false
+}
+
 const applyUserData = (userData: User): void => {
   localCopyUser.id = userData._id
   localCopyUser.avatar = userData.avatar
@@ -341,22 +394,22 @@ const applyUserData = (userData: User): void => {
   localCopyUser.created_date = userData.created_date
   localCopyUser.updated_date = userData.updated_date
   localCopyUser.service = userData.service
-  localCopyUser.info.addresses = userData.info.addresses
-  localCopyUser.info.birthday_date = userData.info.birthday_date
-  localCopyUser.info.birthday_date = userData.info.birthday_date
-  localCopyUser.info.emails = userData.info.emails
-  localCopyUser.info.fullname = userData.info.fullname
-  localCopyUser.info.id = userData.info.id
-  localCopyUser.info.phones = userData.info.phones
-  localCopyUser.info.post = userData.info.post
-  localCopyUser.info.user_id = userData.info.user_id
+  if (userData.info) {
+    localCopyUser.info = {}
+    localCopyUser.info.addresses = userData.info.addresses
+    localCopyUser.info.birthday_date = userData.info.birthday_date
+    localCopyUser.info.emails = userData.info.emails
+    localCopyUser.info.fullname = userData.info.fullname
+    localCopyUser.info.id = userData.info.id
+    localCopyUser.info.phones = userData.info.phones
+    localCopyUser.info.post = userData.info.post
+    localCopyUser.info.user_id = userData.info.user_id
+  } else localCopyUser.info = null
 
   userInfo.user_id = localCopyUser.id
 
-  if (localCopyUser?.info) {
-    id = localCopyUser.info.id
+  if (localCopyUser.info) {
     const outerUserInfo = localCopyUser.info
-    userInfo.user_id = outerUserInfo.user_id
     const arrays = ['emails', 'addresses', 'phones']
     for (const key in outerUserInfo) {
       if (userInfo[key]) {
@@ -380,12 +433,10 @@ const applyUserData = (userData: User): void => {
         }
       }
     }
-  } else {
-    id = localCopyUser.id
   }
 }
 
-watch(userInfo, () => {
+const unwatchChanges = watch(userInfo, () => {
   checkChanges()
 }, { deep: true })
 
@@ -401,47 +452,17 @@ watch(() => $props.userId, async () => {
 
 watch(opened, () => {
   if (!opened.value) {
-    nextTick(() => {
-      userInfo.fullname = {
-        value: '',
-        oldValue: '',
-        edit: false
-      }
 
-      userInfo.post = {
-        value: '',
-        oldValue: '',
-        edit: false
-      }
+    unwatchChanges()
 
-      userInfo.user_id = ''
+    if (hasChanges.value) {
+      $emits('refreshUsersList')
+    }
 
-      userInfo.emails = [
-        {
-          value: '',
-          oldValue: '',
-          edit: false
-        }
-      ]
-
-      userInfo.phones = [
-        {
-          value: '',
-          oldValue: '',
-          edit: false
-        }
-      ]
-
-      userInfo.addresses = [
-        {
-          value: '',
-          oldValue: '',
-          edit: false
-        }
-      ]
-
-      hasChanges.value = false
-    })
+    // ToDo Сброс аватара когда будет аватар
+    setTimeout(() => {
+      resetUserData()
+    }, 1000)
   }
 })
 </script>
@@ -501,8 +522,8 @@ watch(opened, () => {
                 <UButton icon="ic-outline-plus"/>
               </div>
             </template>
-            <template v-else>
-              Нет ролей
+            <template class="flex gap-2" v-else>
+              <span>Нет ролей</span> <UButton icon="ic-outline-plus"/>
             </template>
           </div>
 
@@ -528,8 +549,8 @@ watch(opened, () => {
                 <UButton icon="ic-outline-plus"/>
               </div>
             </template>
-            <template v-else>
-              Нет групп
+            <template class="flex gap-2" v-else>
+              <span>Нет групп</span> <UButton icon="ic-outline-plus"/>
             </template>
           </div>
 

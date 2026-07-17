@@ -52,6 +52,17 @@ export type Avatar = {
   user_id: ID
 }
 
+export type UserInfo = {
+  emails: string[]
+  addresses: string[]
+  birthday_date: number
+  fullname: string
+  phones: string[]
+  post: string
+  user_id: string
+  id: string
+}
+
 export interface User extends GraphQlEntity {
   _id: ID
   avatar: null
@@ -64,14 +75,5 @@ export interface User extends GraphQlEntity {
   updated_date: number
   service: object | null // ToDo Type
   settings: object | null // ToDo Type
-  info: {
-    emails: string[]
-    addresses: string[]
-    birthday_date: number
-    fullname: string
-    phones: string[]
-    post: string
-    user_id: string
-    id: string
-  }
+  info: UserInfo | null
 }
