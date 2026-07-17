@@ -3,6 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 import type { User, ApolloError, QueryResponse, Role, GroupShort } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { format } from 'date-fns'
+import ListEditor from "~/components/modal/ListEditor.vue";
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
@@ -29,6 +30,8 @@ const rowSelection = ref({})
 const response: QueryResponse<'allUsers', []> = await useAsyncQuery(ALL_USERS)
 
 let allUsers: Ref<User[] | []> = computed(() => response?.data?.value?.allUsers || [])
+
+const currentListToEdit: '' | 'groups' | 'roles' = ''
 
 const refreshHandler = async () => {
   try {
@@ -210,8 +213,13 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <UsersViewModal :userId="userToShow" @after:leave="userToShow = ''"/>
+          <UsersViewModal
+            :userId="userToShow"
+            @after:leave="userToShow = ''"
+            @refresh-users-list="refreshHandler()"
+          />
           <UsersAddModal @refresh-users-list="refreshHandler()" />
+          <ListEditor type="currentListToEdit" />
         </template>
       </UDashboardNavbar>
     </template>

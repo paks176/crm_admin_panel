@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {ApolloError, QueryResponse, User, GroupShort} from "~/types";
+import type { ApolloError, User } from "~/types";
 import USER from '~/graphql/queries/User.graphql'
 import { format } from "date-fns";
 import updateUserInfoService from "~/graphql/services/updateUserInfoService.js";
@@ -17,17 +17,6 @@ const $emits = defineEmits(['refreshUsersList'])
 const opened = ref(false)
 
 const formRef = useTemplateRef('userFormRef')
-
-const emptyUserInfo = {
-  addresses: [],
-  birthday_date: 0,
-  emails: [],
-  fullname: '',
-  id: '',
-  phones: [],
-  post: '',
-  user_id: ''
-}
 
 const localCopyUser = reactive<User>({
   _id: '',
