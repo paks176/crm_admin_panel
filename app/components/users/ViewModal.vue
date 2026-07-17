@@ -197,14 +197,15 @@ const checkAnyLocalChanges = (): boolean => {
 
 const checkChanges = () => {
   // ToDo отслеживание изменений по аватару, логину
+
   if ($props.userId) {
     if (localCopyUser.info) {
-      if ($props.userId.info?.fullname || $props.userId.info?.post) {
-        if ($props.userId.info?.fullname && (userInfo.fullname.value !== $props.userId.info.fullname)) {
+      if (localCopyUser.info?.fullname || localCopyUser.info?.post) {
+        if (localCopyUser.info?.fullname && (userInfo.fullname.value !== localCopyUser.info.fullname)) {
           hasChanges.value = true
           return
         }
-        if ($props.userId.info?.post && (userInfo.post.value !== $props.userId.info.post)) {
+        if (localCopyUser.info?.post && (userInfo.post.value !== localCopyUser.info.post)) {
           hasChanges.value = true
           return
         }
@@ -310,6 +311,7 @@ const updateUserInfoRequest = async () => {
            color: 'success'
          })
          await getUser($props.userId)
+         isLoading.value = false
      })
     } catch (error: unknown) {
       const localError = error as ApolloError
@@ -537,7 +539,7 @@ watch(opened, () => {
             <h3 class="mb-5 font-semibold">Пользовательская информация</h3>
             <div class="user-card__item flex gap-4 my-5">
               <p class="w-1/4">Полное имя:</p>
-              <div>
+              <div class="user-card__item__field flex gap-2">
                 <template v-if="userInfo.fullname.edit">
                   <UInput
                     v-if="userInfo.fullname.edit"
