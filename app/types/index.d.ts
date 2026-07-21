@@ -77,3 +77,5 @@ export interface User extends GraphQlEntity {
   settings: object | null // ToDo Type
   info: UserInfo | null
 }
+
+export type MainEntities = 'users' | 'groups' | 'roles'

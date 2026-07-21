@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApolloError, User } from "~/types";
+import type {ApolloError, Role, User} from "~/types";
 import USER from '~/graphql/queries/User.graphql'
 import { format } from "date-fns";
 import updateUserInfoService from "~/graphql/services/updateUserInfoService.js";
@@ -12,7 +12,7 @@ const $props = defineProps<{
   userId: string,
 }>()
 
-const $emits = defineEmits(['refreshUsersList'])
+const $emits = defineEmits(['refreshUsersList', 'editList'])
 
 const opened = ref(false)
 
@@ -81,6 +81,16 @@ const userInfo = reactive({
 const hasChanges = ref(false)
 
 const isLoading = ref(false)
+
+const showEditListDialog = (target: string, oldList: Role[] | []): void => {
+  opened.value = false
+  $emits('editList', {
+    entityId: $props.userId,
+    source: 'users',
+    target,
+    oldList
+  })
+}
 
 const { client } = useApolloClient()
 
@@ -494,7 +504,7 @@ watch(opened, () => {
             <template v-if="localCopyUser?.roles.length">
               <div class="flex flex-wrap gap-2">
                 <UBadge
-                  v-for="role in localCopyUser?.roles"
+                  v-for="role in localCopyUser.roles"
                   :label="role.name"
                   class="pr-0 py-0 gap-2 overflow-hidden"
                   variant="soft"
@@ -505,10 +515,14 @@ watch(opened, () => {
                       icon="boxicons-trash-filled"
                       class="rounded-none"
                       variant="soft"
+                      @click="showEditListDialog('roles', localCopyUser.roles)"
                     />
                   </template>
                 </UBadge>
-                <UButton icon="ic-outline-plus"/>
+                <UButton
+                  icon="ic-outline-plus"
+                  @click="showEditListDialog('roles', localCopyUser.roles)"
+                />
               </div>
             </template>
             <template class="flex gap-2" v-else>
@@ -521,7 +535,7 @@ watch(opened, () => {
             <template v-if="localCopyUser?.roles.length">
               <div class="flex flex-wrap gap-2">
                 <UBadge
-                  v-for="group in localCopyUser?.groups"
+                  v-for="group in localCopyUser.groups"
                   :label="group.name"
                   class="pr-0 py-0 gap-2 overflow-hidden"
                   variant="solid"
@@ -532,10 +546,14 @@ watch(opened, () => {
                       icon="boxicons-trash-filled"
                       class="rounded-none"
                       variant="soft"
+                      @click="showEditListDialog('groups', localCopyUser.groups)"
                     />
                   </template>
                 </UBadge>
-                <UButton icon="ic-outline-plus"/>
+                <UButton
+                  icon="ic-outline-plus"
+                  @click="showEditListDialog('groups', localCopyUser.groups)"
+                />
               </div>
             </template>
             <template class="flex gap-2" v-else>

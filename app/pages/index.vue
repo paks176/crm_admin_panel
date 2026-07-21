@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { User, ApolloError, QueryResponse, Role, GroupShort } from '~/types'
+import type {User, ApolloError, QueryResponse, Role, GroupShort, Group, MainEntities} from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { format } from 'date-fns'
 import ListEditor from "~/components/modal/ListEditor.vue";
@@ -14,6 +14,7 @@ const toast = useToast()
 const table = useTemplateRef('table')
 const requestError = ref('')
 const userToShow: Ref<string> = ref('')
+const showListEditorModal = ref(false)
 
 useHead({
   title: 'Пользователи'
@@ -30,8 +31,6 @@ const rowSelection = ref({})
 const response: QueryResponse<'allUsers', []> = await useAsyncQuery(ALL_USERS)
 
 let allUsers: Ref<User[] | []> = computed(() => response?.data?.value?.allUsers || [])
-
-const currentListToEdit: '' | 'groups' | 'roles' = ''
 
 const refreshHandler = async () => {
   try {
@@ -192,6 +191,37 @@ const name = computed({
   }
 })
 
+type ListEditData = {
+  entityId: string
+  oldList: User[] | Group[] | Role[] | []
+  target: MainEntities | ''
+  source: MainEntities | ''
+}
+
+const listEditData: ListEditData = {
+  entityId: '',
+  oldList: [],
+  target: '',
+  source: ''
+}
+
+const launchListEditing = (dataToEdit: ListEditData): void => {
+  const { entityId, target, source } = dataToEdit
+  if (entityId && target && source) {
+    listEditData.entityId = entityId
+    listEditData.oldList = dataToEdit.oldList || []
+    listEditData.target = dataToEdit.target
+    listEditData.source = dataToEdit.source
+
+    showListEditorModal.value = true
+  }
+}
+
+const closeListEditModal = (entityId: string): void => {
+  userToShow.value = entityId
+  showListEditorModal.value = false
+}
+
 onMounted(async () => {
   if (requestError.value) {
     toast.add({
@@ -217,9 +247,16 @@ onMounted(async () => {
             :userId="userToShow"
             @after:leave="userToShow = ''"
             @refresh-users-list="refreshHandler()"
+            @edit-list="launchListEditing"
           />
+
           <UsersAddModal @refresh-users-list="refreshHandler()" />
-          <ListEditor type="currentListToEdit" />
+
+          <ListEditor
+            :list-edit-data="listEditData"
+            :show-modal="showListEditorModal"
+            @cancel="closeListEditModal"
+          />
         </template>
       </UDashboardNavbar>
     </template>

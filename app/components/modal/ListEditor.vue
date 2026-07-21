@@ -1,171 +1,78 @@
 <script setup lang="ts">
-// import {email} from "zod"; ToDo: разобраться в валидации Zod
-import createUserService from "~/graphql/services/createUserService.js"
-import type { ApolloError } from "~/types";
+import type { Group, MainEntities, Role, User } from "~/types";
 
-const $emits = defineEmits(['refreshUsersList'])
+const $props = defineProps<{
+  showModal: boolean,
+  listEditData: {
+    oldList: User[] | Group[] | Role[] | [],
+    source: MainEntities | '' // что меняем
+    target: MainEntities | '' // у чего меняем
+    entityId: string
+  }
+}>()
 
-const open = ref(false)
+const $emits = defineEmits(['submit', 'cancel'])
 
-const state = reactive({
-  name: '',
-  email: '',
-  password: ''
-})
+const opened = ref(false)
 
-const isFormFilled = computed(() => {
-  return state.name.length >= 2 && state.email.length >= 3 && state.password.length >= 4
-})
+const ruSource = (source: string) => {
+  switch (source) {
+    case 'users':
+      return 'пользователя'
+    case 'groups':
+      return 'группы'
+    case 'roles':
+      return 'роли'
+    default:
+      return ''
+  }
+}
 
-const toast = useToast()
+const ruTarget = (target: string) => {
+  switch (target) {
+    case 'users':
+      return 'пользователей'
+    case 'groups':
+      return 'группы'
+    case 'roles':
+      return 'роли'
+    default:
+      return ''
+  }
+}
 
-const isUserCreated = ref(false)
+const modalTitle = ref('')
 
 const isLoading = ref(false)
 
-const copyUserData = () => {
-  const message = `Имя: ${ state.name }\nEmail (логин): ${ state.email }\nПароль: ${ state.password }`
-  navigator.clipboard.writeText(message)
-  toast.add({
-    title: 'Данные пользователя скопированы',
-    icon: 'i-lucide-check',
-    color: 'info'
-  })
+const onSubmit = () => {
+  console.log('submit')
 }
 
-const createUser = async () => {
-  isLoading.value = true
-  try {
-    await createUserService({
-      name: state.name,
-      email: state.email,
-      password: state.password
-    })
-    isLoading.value = false
-    isUserCreated.value = true
-
-  } catch (error: unknown) {
-    const localError = error as ApolloError
-    console.error(localError.message)
-    isLoading.value = false
-    toast.add({
-      title: 'Ошибка',
-      description: localError.message,
-      icon: 'i-lucide-check',
-      color: 'error'
-    })
-  }
-}
-
-watch(() => open.value, () => {
-  if (!open.value) {
-    state.name = ''
-    state.email = ''
-    state.password = ''
-    if (isUserCreated.value) {
-      $emits('refreshUsersList')
-    }
-  }
+watch(() => $props.showModal, () => {
+  opened.value = $props.showModal
+  const source = ruSource($props.listEditData.source)
+  const target = ruTarget($props.listEditData.target)
+  modalTitle.value = 'Изменить ' + target + ' ' + source
 })
 </script>
 
 <template>
-  <UModal v-model:open="open" title="Новый пользователь">
-    <UButton label="Добавить пользователя" icon="i-lucide-plus" />
-
+  <UModal v-model:open="opened" :title="modalTitle">
     <template #body>
-      <UForm
-        v-if="!isUserCreated"
-        :state="state"
-        class="space-y-4 relative"
-      >
+      {{ listEditData.oldList }}
 
-        <UFormField label="Имя" name="name">
-          <UInput
-            v-model="state.name"
-            class="w-full"
-            :disabled="isLoading"
-          />
-        </UFormField>
-
-        <UFormField label="Email" name="email">
-          <UInput
-            v-model="state.email"
-            class="w-full"
-            :disabled="isLoading"
-          />
-        </UFormField>
-
-        <UFormField label="Пароль" name="password">
-          <UInput
-            v-model="state.password"
-            class="w-full"
-            :disabled="isLoading"
-          />
-        </UFormField>
-
-        <div v-if="isLoading" class="animate-spin absolute inset-[calc(50%-24px)]">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g clip-path="url(#clip0_2018_110)">
-              <path d="M24 2C11.5687 1.99952 1.99987 11.9 2 24C2.00013 35.22 10.8932 46 24 46C36.1933 46 46 36.1 46 24" stroke="#114FD3" stroke-width="4" stroke-linecap="round" />
-            </g>
-            <defs>
-              <clipPath id="clip0_2018_110">
-                <rect width="48" height="48" fill="white" />
-              </clipPath>
-            </defs>
-          </svg>
-        </div>
-      </UForm>
-
-      <UCard
-        v-if="isUserCreated"
-        title="Созданный пользователь"
-        variant="soft"
-        class="relative"
-      >
-        <div>
-          <p>
-            <span>Имя:</span>&nbsp;<span class="font-semibold">{{ state.name }}</span>
-          </p>
-          <br>
-          <p>
-            <span>Email (логин):</span>&nbsp;<span class="font-semibold">{{ state.email }}</span>
-          </p>
-          <br>
-          <p>
-            <span>Пароль:</span>&nbsp;<span class="font-semibold">{{ state.password }}</span>
-          </p>
-        </div>
-      </UCard>
-
-      <div class="flex justify-end gap-2 mt-6">
-        <template v-if="!isUserCreated">
-          <UButton
-            label="Отмена"
-            color="neutral"
-            variant="subtle"
-            @click="open = false"
-          />
-          <UButton
-            :disabled="isLoading || !isFormFilled"
-            label="Создать"
-            color="primary"
-            variant="solid"
-            type="submit"
-            @click="createUser"
-          />
-        </template>
-
+      <div class="mt-8 gap-2 flex justify-end">
         <UButton
-          v-if="isUserCreated"
-          label="Скопировать данные"
-          color="info"
-          variant="solid"
-          type="submit"
-          icon="solar-copy-bold"
-          @click="copyUserData"
+          label="Отмена"
+          color="neutral"
+          variant="subtle"
+          @click="$emits('cancel', listEditData.entityId)"
         />
+
+        <UButton>
+          Cохранить
+        </UButton>
       </div>
     </template>
   </UModal>
