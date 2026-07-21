@@ -3,6 +3,7 @@ import authUser from "~/graphql/services/authService"
 import { useToast } from "#imports";
 import type { ApolloError } from "~/types";
 import type { MutationResponse } from "~/types"
+import LoadingCover from "~/components/ui/LoadingCover.vue";
 
 const toast = useToast()
 
@@ -15,9 +16,12 @@ const loginData = reactive({
   password: ''
 })
 
+const isLoading = ref(false)
+
 const { login } = authCheck()
 
 const loginAction = async () => {
+  isLoading.value = true
   try {
     const { data } = await authUser({
       email: loginData.email,
@@ -44,6 +48,8 @@ const loginAction = async () => {
       icon: 'i-lucide-check',
       color: 'error'
     })
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -51,6 +57,7 @@ const loginAction = async () => {
 <template>
   <h1 class="font-semibold">Авторизация</h1>
   <form @submit.prevent="loginAction">
+    <LoadingCover :show="isLoading" />
     <UInput
       placeholder="Логин"
       v-model="loginData.email"
@@ -76,5 +83,10 @@ form {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  position: relative;
+}
+
+:global(.animate-spin) {
+  margin-top: -50px;
 }
 </style>
