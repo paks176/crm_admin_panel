@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { Group, MainEntities, Role, User } from "~/types";
+import type {Group, MainEntities, Role, User} from "~/types";
 import LoadingCover from "~/components/ui/LoadingCover.vue";
 import ALL_GROUPS from '~/graphql/queries/AllGroups.graphql'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
-import {useApolloClient} from "#imports";
-import USER from "~/graphql/queries/User.graphql";
 
 const $props = defineProps<{
   showModal: boolean,
@@ -19,7 +17,7 @@ const $props = defineProps<{
 
 const $emits = defineEmits(['submit', 'cancel'])
 
-const { client } = useApolloClient()
+const toast = useToast()
 
 const opened = ref(false)
 
@@ -49,25 +47,45 @@ const ruTarget = (target: string) => {
   }
 }
 
-const getAll = async (type: MainEntities): Promise<void> => {
+const getAll = async (type: MainEntities): Promise<User[] | Role[] | Group[] | []> => {
   let query
+  let listName: 'allUsers' | 'allGroups' | 'allRoles'
   switch (type) {
-    case "users":
+    case 'users':
       query = ALL_USERS
+      listName = 'allUsers'
       break
-    case "groups":
+    case 'groups':
       query = ALL_GROUPS
+      listName = 'allGroups'
       break
-    case "roles":
+    case 'roles':
       query = ALL_ROLES
+      listName = 'allRoles'
       break
     default:
       query = ALL_USERS
+      listName = 'allUsers'
   }
 
-  const response = await useLazyAsyncQuery(query)
+  const { data, error } = await useLazyAsyncQuery(query) as unknown as {
+      data: Ref<'allUsers' | 'allGroups' | 'allRoles', []>,
+      error: Ref<string>
+    }
 
-  console.log(response)
+  console.log(data)
+
+  if (error.value) {
+    toast.add({
+      title: 'Ошибка получения списка',
+      description: error.value,
+      duration: 5000,
+      color: 'error'
+    })
+    return []
+  } else {
+    return data.value[listName]
+  }
 }
 
 let source = ref('')
@@ -81,6 +99,7 @@ const isLoadingSubmit = ref(false)
 const isLoadingList = ref(false)
 
 const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
+const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
 
 const onSubmit = () => {
   console.log('submit')
@@ -92,7 +111,16 @@ watch(() => $props.showModal, async () => {
   target.value = ruTarget($props.listEditData.target)
   modalTitle.value = 'Изменить ' + target.value + ' ' + source.value
   if ($props.listEditData.target) {
-    await getAll($props.listEditData.target)
+    isLoadingList.value = true
+    allEntities.value = await getAll($props.listEditData.target)
+    console.log(allEntities.value)
+    setTimeout(() => {
+      isLoadingList.value = false
+    }, 1000)
+  }
+
+  if ($props.listEditData.oldList && $props.listEditData.oldList.length) {
+    chosenEntities.value = $props.listEditData.oldList
   }
 })
 </script>
@@ -115,6 +143,21 @@ watch(() => $props.showModal, async () => {
           <div class="list list--all">
             <LoadingCover :show="isLoadingList" />
 
+            <UBadge
+              v-for="entity in allEntities"
+              :label="entity.name"
+              class="pr-0 py-0 gap-2 overflow-hidden"
+              variant="soft"
+            >
+              <template #trailing>
+                <UButton
+                  icon="ic-outline-plus"
+                  class="rounded-none ml-auto"
+                  variant="soft"
+                  @click=""
+                />
+              </template>
+            </UBadge>
           </div>
         </div>
 
@@ -122,6 +165,21 @@ watch(() => $props.showModal, async () => {
           <p class="text-muted mb-4">Выбранные {{ target }}</p>
 
           <div class="list list--chosen">
+            <UBadge
+              v-for="entity in chosenEntities"
+              :label="entity.name"
+              class="pr-0 py-0 gap-2 overflow-hidden"
+              variant="soft"
+            >
+              <template #trailing>
+                <UButton
+                  icon="ic-outline-minus"
+                  class="rounded-none ml-auto"
+                  variant="soft"
+                  @click=""
+                />
+              </template>
+            </UBadge>
           </div>
         </div>
       </div>
@@ -153,6 +211,9 @@ watch(() => $props.showModal, async () => {
     height: 400px;
     border: 1px solid var(--color-light-gray);
     width: 100%;
+    &--all {
+      position: relative;
+    }
     &--chosen {
       height: calc(100% - 40px);
     }
