@@ -16,6 +16,7 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
   --color-gray: gray;
+  --color-light-gray: #d4d4d8;
   --color-trans-white: rgba(255, 255, 255, 0.7);
 
   --ui-primary: #114fd3;
@@ -32,6 +33,10 @@ button {
 
 hr {
   border-color: var(--color-gray);
+}
+
+.text-secondary {
+  color: var(--color-gray)
 }
 
 hr.main-divider {
