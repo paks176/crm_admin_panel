@@ -73,8 +73,6 @@ const getAll = async (type: MainEntities): Promise<User[] | Role[] | Group[] | [
       error: Ref<string>
     }
 
-  console.log(data)
-
   if (error.value) {
     toast.add({
       title: 'Ошибка получения списка',
@@ -88,6 +86,32 @@ const getAll = async (type: MainEntities): Promise<User[] | Role[] | Group[] | [
   }
 }
 
+const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
+const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
+
+const moveItem = <T extends User | Role | Group>(item: T, action: 'add' | 'remove'): void => {
+  let from: T[]
+  let to: T[]
+
+  if (action === 'add') {
+    from = allEntities.value as T[]
+    to = chosenEntities.value as T[]
+  } else {
+    from = chosenEntities.value as T[]
+    to = allEntities.value as T[]
+  }
+
+  const itemToMoveIndex = from.findIndex((entity) => entity.id === item.id)
+  const itemToMove = from[itemToMoveIndex]
+  if (itemToMove) {
+    const existingItem = to.find((item) => item.id === itemToMove.id)
+    if (!existingItem) {
+      to.push(itemToMove)
+    }
+    from.splice(itemToMoveIndex, 1)
+  }
+}
+
 let source = ref('')
 let target = ref('')
 
@@ -97,9 +121,6 @@ const searchText = ref('')
 
 const isLoadingSubmit = ref(false)
 const isLoadingList = ref(false)
-
-const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
-const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
 
 const onSubmit = () => {
   console.log('submit')
@@ -112,15 +133,17 @@ watch(() => $props.showModal, async () => {
   modalTitle.value = 'Изменить ' + target.value + ' ' + source.value
   if ($props.listEditData.target) {
     isLoadingList.value = true
-    allEntities.value = await getAll($props.listEditData.target)
-    console.log(allEntities.value)
+    allEntities.value = [...await getAll($props.listEditData.target)]
     setTimeout(() => {
       isLoadingList.value = false
     }, 1000)
   }
-
   if ($props.listEditData.oldList && $props.listEditData.oldList.length) {
     chosenEntities.value = $props.listEditData.oldList
+    const copyOfChosen = [...chosenEntities.value]
+    copyOfChosen.forEach((entity) => {
+      moveItem(entity, 'add')
+    })
   }
 })
 </script>
@@ -131,7 +154,10 @@ watch(() => $props.showModal, async () => {
 
       <div class="flex">
         <div class="border-r border-light-gray pr-4 w-1/2">
-          <p class="text-muted mb-4">Все {{ target }}</p>
+          <div class="mb-4 flex gap-4 content-between items-center">
+            <p class="text-muted">Все {{ target }}</p>
+            <i class="text-muted text-xs" v-if="chosenEntities.length">Скрыто {{ chosenEntities.length }} выбранных</i>
+          </div>
 
           <UInput
             v-model="searchText"
@@ -154,7 +180,7 @@ watch(() => $props.showModal, async () => {
                   icon="ic-outline-plus"
                   class="rounded-none ml-auto"
                   variant="soft"
-                  @click=""
+                  @click="moveItem(entity, 'add')"
                 />
               </template>
             </UBadge>
@@ -176,7 +202,7 @@ watch(() => $props.showModal, async () => {
                   icon="ic-outline-minus"
                   class="rounded-none ml-auto"
                   variant="soft"
-                  @click=""
+                  @click="moveItem(entity, 'remove')"
                 />
               </template>
             </UBadge>
@@ -192,7 +218,7 @@ watch(() => $props.showModal, async () => {
           @click="$emits('cancel', listEditData.entityId)"
         />
 
-        <UButton>
+        <UButton @click="onSubmit">
           Cохранить
         </UButton>
       </div>
