@@ -526,7 +526,7 @@ watch(opened, () => {
               </div>
             </template>
             <template class="flex gap-2" v-else>
-              <span>Нет ролей</span> <UButton icon="ic-outline-plus"/>
+              <span>Нет ролей</span> <UButton  @click="showEditListDialog('roles', localCopyUser.roles)" icon="ic-outline-plus"/>
             </template>
           </div>
 
@@ -557,7 +557,7 @@ watch(opened, () => {
               </div>
             </template>
             <template class="flex gap-2" v-else>
-              <span>Нет групп</span> <UButton icon="ic-outline-plus"/>
+              <span>Нет групп</span> <UButton icon="ic-outline-plus" @click="showEditListDialog('groups', localCopyUser.groups)"/>
             </template>
           </div>
 

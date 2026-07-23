@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type {Group, MainEntities, Role, User} from "~/types";
+import type {ApolloError, Group, MainEntities, Role, User} from "~/types";
 import LoadingCover from "~/components/ui/LoadingCover.vue";
 import ALL_GROUPS from '~/graphql/queries/AllGroups.graphql'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
+
+import bindRolesService from '~/graphql/services/bindRolesService.js'
+import bindGroupsService from '~/graphql/services/bindGroupsService.js'
 
 const $props = defineProps<{
   showModal: boolean,
@@ -20,6 +23,18 @@ const $emits = defineEmits(['submit', 'cancel'])
 const toast = useToast()
 
 const opened = ref(false)
+
+const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
+const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
+
+let source = ref('')
+let target = ref('')
+
+const modalTitle = ref('')
+const searchText = ref('')
+
+const isLoadingSubmit = ref(false)
+const isLoadingList = ref(false)
 
 const ruSource = (source: string) => {
   switch (source) {
@@ -82,12 +97,9 @@ const getAll = async (type: MainEntities): Promise<User[] | Role[] | Group[] | [
     })
     return []
   } else {
-    return data.value[listName]
+    return data.value[listName] // ToDo: исправить тс
   }
 }
-
-const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
-const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
 
 const moveItem = <T extends User | Role | Group>(item: T, action: 'add' | 'remove'): void => {
   let from: T[]
@@ -112,38 +124,72 @@ const moveItem = <T extends User | Role | Group>(item: T, action: 'add' | 'remov
   }
 }
 
-let source = ref('')
-let target = ref('')
-
-const modalTitle = ref('')
-
-const searchText = ref('')
-
-const isLoadingSubmit = ref(false)
-const isLoadingList = ref(false)
-
-const onSubmit = () => {
-  console.log('submit')
+const onSubmit = async () => {
+  let bindAction
+  let IdsKey = ''
+  const sourceIds = chosenEntities.value.map((entity) => entity.id)
+  switch ($props.listEditData.target) {
+    case 'groups':
+      bindAction = bindRolesService
+      IdsKey = 'groupsIds'
+      break
+    case 'roles': {
+      bindAction = bindGroupsService
+      IdsKey = 'roleIds'
+      break
+    }
+  }
+  if (bindAction) {
+    isLoadingSubmit.value = true
+    try {
+      await bindAction({
+        userIds: [$props.listEditData.entityId],
+        [IdsKey]: sourceIds
+      })
+    } catch (error: unknown) {
+      const localError = error as ApolloError
+      console.error(localError.message)
+      toast.add({
+        title: 'Ошибка привязки',
+        description: localError.message,
+        icon: 'i-lucide-check',
+        color: 'error'
+      })
+    } finally {
+      isLoadingSubmit.value = false
+    }
+  }
 }
 
 watch(() => $props.showModal, async () => {
   opened.value = $props.showModal
-  source.value = ruSource($props.listEditData.source)
-  target.value = ruTarget($props.listEditData.target)
-  modalTitle.value = 'Изменить ' + target.value + ' ' + source.value
-  if ($props.listEditData.target) {
-    isLoadingList.value = true
-    allEntities.value = [...await getAll($props.listEditData.target)]
-    setTimeout(() => {
-      isLoadingList.value = false
-    }, 1000)
-  }
-  if ($props.listEditData.oldList && $props.listEditData.oldList.length) {
-    chosenEntities.value = $props.listEditData.oldList
-    const copyOfChosen = [...chosenEntities.value]
-    copyOfChosen.forEach((entity) => {
-      moveItem(entity, 'add')
-    })
+  if (opened.value) {
+    source.value = ruSource($props.listEditData.source)
+    target.value = ruTarget($props.listEditData.target)
+    modalTitle.value = 'Изменить ' + target.value + ' ' + source.value
+    if ($props.listEditData.target) {
+      isLoadingList.value = true
+      allEntities.value = [...await getAll($props.listEditData.target)]
+      setTimeout(() => {
+        isLoadingList.value = false
+      }, 1000)
+    }
+    if ($props.listEditData.oldList && $props.listEditData.oldList.length) {
+      chosenEntities.value = $props.listEditData.oldList
+      const copyOfChosen = [...chosenEntities.value]
+      copyOfChosen.forEach((entity) => {
+        moveItem(entity, 'add')
+      })
+    }
+  } else {
+    // cleanup
+    source.value = ''
+    target.value = ''
+    modalTitle.value = ''
+    chosenEntities.value = []
+    allEntities.value = []
+    isLoadingList.value = false
+    isLoadingSubmit.value = false
   }
 })
 </script>
@@ -218,7 +264,7 @@ watch(() => $props.showModal, async () => {
           @click="$emits('cancel', listEditData.entityId)"
         />
 
-        <UButton @click="onSubmit">
+        <UButton :disabled="isLoadingSubmit" @click="onSubmit">
           Cохранить
         </UButton>
       </div>

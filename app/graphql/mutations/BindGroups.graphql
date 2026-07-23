@@ -1,0 +1,8 @@
+mutation BindGroups($userIds: [ID!]!, $groupIds: [ID!]!) {
+  bindGroups(userIds: $userIds, groupIds: $groupIds) {
+    id
+    groups {
+      id
+    }
+  }
+}

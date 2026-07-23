@@ -1,0 +1,8 @@
+mutation BindRoles($userIds: [ID!]!, $roleIds: [ID!]!) {
+  bindRoles(userIds: $userIds, roleIds: $roleIds) {
+    id
+    roles {
+      id
+    }
+  }
+}
