@@ -8,6 +8,11 @@ import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
 import bindRolesService from '~/graphql/services/bindRolesService.js'
 import bindGroupsService from '~/graphql/services/bindGroupsService.js'
 
+type BindingTasks = {
+  toBind: string[],
+  toUnBind: string[]
+}
+
 const $props = defineProps<{
   showModal: boolean,
   listEditData: {
@@ -124,41 +129,79 @@ const moveItem = <T extends User | Role | Group>(item: T, action: 'add' | 'remov
   }
 }
 
+const getBindingTasks = (): BindingTasks => {
+  const result: BindingTasks = {
+    toBind: [],
+    toUnBind: []
+  }
+  const oldList = [...$props.listEditData.oldList]
+  const newList = [...chosenEntities.value]
+
+  if (oldList.length) {
+    // если элементы были изначально
+    if (!chosenEntities.value.length) {
+      // элементы были, но все удалили
+      result.toUnBind = oldList.map((entity) => entity.id)
+    } else {
+      chosenEntities.value.forEach((chosenEntity) => {
+        const newItem = !(oldList.find((oldEntity) => oldEntity.id === chosenEntity.id))
+        if (newItem) {
+          result.toBind.push(chosenEntity.id)
+        }
+      })
+
+      oldList.forEach((oldEntity) => {
+        const oldItem = !(newList.find((newEntity) => newEntity.id === oldEntity.id))
+        if (oldItem) {
+          result.toUnBind.push(oldEntity.id)
+        }
+      })
+    }
+  } else {
+      // если элементов не было, то биндим все
+      result.toBind = newList.map((entity) => entity.id)
+  }
+
+  return result
+}
+
 const onSubmit = async () => {
-  let bindAction
-  let IdsKey = ''
-  const sourceIds = chosenEntities.value.map((entity) => entity.id)
-  switch ($props.listEditData.target) {
-    case 'groups':
-      bindAction = bindRolesService
-      IdsKey = 'groupsIds'
-      break
-    case 'roles': {
-      bindAction = bindGroupsService
-      IdsKey = 'roleIds'
-      break
-    }
-  }
-  if (bindAction) {
-    isLoadingSubmit.value = true
-    try {
-      await bindAction({
-        userIds: [$props.listEditData.entityId],
-        [IdsKey]: sourceIds
-      })
-    } catch (error: unknown) {
-      const localError = error as ApolloError
-      console.error(localError.message)
-      toast.add({
-        title: 'Ошибка привязки',
-        description: localError.message,
-        icon: 'i-lucide-check',
-        color: 'error'
-      })
-    } finally {
-      isLoadingSubmit.value = false
-    }
-  }
+  const tasks = getBindingTasks()
+  console.log(tasks)
+  // let bindAction
+  // let IdsKey = ''
+  // const sourceIds = chosenEntities.value.map((entity) => entity.id)
+  // switch ($props.listEditData.target) {
+  //   case 'groups':
+  //     bindAction = bindRolesService
+  //     IdsKey = 'groupsIds'
+  //     break
+  //   case 'roles': {
+  //     bindAction = bindGroupsService
+  //     IdsKey = 'roleIds'
+  //     break
+  //   }
+  // }
+  // if (bindAction) {
+  //   isLoadingSubmit.value = true
+  //   try {
+  //     await bindAction({
+  //       userIds: [$props.listEditData.entityId],
+  //       [IdsKey]: sourceIds
+  //     })
+  //   } catch (error: unknown) {
+  //     const localError = error as ApolloError
+  //     console.error(localError.message)
+  //     toast.add({
+  //       title: 'Ошибка привязки',
+  //       description: localError.message,
+  //       icon: 'i-lucide-check',
+  //       color: 'error'
+  //     })
+  //   } finally {
+  //     isLoadingSubmit.value = false
+  //   }
+  // }
 }
 
 watch(() => $props.showModal, async () => {
@@ -175,7 +218,7 @@ watch(() => $props.showModal, async () => {
       }, 1000)
     }
     if ($props.listEditData.oldList && $props.listEditData.oldList.length) {
-      chosenEntities.value = $props.listEditData.oldList
+      chosenEntities.value = [...$props.listEditData.oldList]
       const copyOfChosen = [...chosenEntities.value]
       copyOfChosen.forEach((entity) => {
         moveItem(entity, 'add')
