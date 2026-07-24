@@ -1,0 +1,21 @@
+query Group($groupId: ID!) {
+  Group(id: $groupId) {
+    _id
+    children {
+      id
+      name
+    }
+    id
+    isExpandedAccess
+    name
+    parent {
+      id
+      name
+    }
+    parent_id
+    supervisors {
+      id
+      name
+    }
+  }
+}

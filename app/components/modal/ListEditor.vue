@@ -6,7 +6,7 @@ import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
 
 import changeRolesService from '~/graphql/services/changeRolesService.js'
-import bindGroupsService from '~/graphql/services/bindGroupsService.js'
+import changeGroupsService from '~/graphql/services/changeGroupsService.js'
 
 type BindingTasks = {
   toBind: string[],
@@ -169,7 +169,7 @@ const onSubmit = async () => {
   let bindAction
   switch ($props.listEditData.target) {
     case 'groups':
-      bindAction = bindGroupsService
+      bindAction = changeGroupsService
       break
     case 'roles': {
       bindAction = changeRolesService

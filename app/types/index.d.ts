@@ -33,10 +33,14 @@ export interface GroupShort extends GraphQlEntity {
 }
 
 export type Group = {
+  _id: ID
+  children: [Group] | []
   id: ID
-  name: string
-  parent_id: ID
-  supervisors: User[]
+  isExpandedAccess: Boolean
+  name: String
+  parent: Group | null
+  parent_id: ID | null
+  supervisors: [User] | []
 }
 
 // ToDo: interface GroupFull

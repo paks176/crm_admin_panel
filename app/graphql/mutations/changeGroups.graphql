@@ -1,0 +1,22 @@
+mutation changeGroups(
+  $userIds: [ID!]!,
+  $toBind: [ID!],
+  $toUnbind: [ID!],
+  $runBind: Boolean!
+  $runUnbind: Boolean!
+) {
+
+  bindGroups(userIds: $userIds, groupIds: $toBind) @include(if: $runBind) {
+    id
+    roles {
+      id
+    }
+  }
+
+  unbindGroups(userIds: $userIds, groupIds: $toUnbind) @include(if: $runUnbind) {
+    id
+    roles {
+      id
+    }
+  }
+}

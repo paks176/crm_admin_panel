@@ -506,21 +506,12 @@ watch(opened, () => {
                 <UBadge
                   v-for="role in localCopyUser.roles"
                   :label="role.name"
-                  class="pr-0 py-0 gap-2 overflow-hidden"
+                  class="overflow-hidden"
                   variant="soft"
                   :color="role.name === 'Администратор' ? 'info' : 'primary'"
-                >
-                  <template #trailing>
-                    <UButton
-                      icon="boxicons-trash-filled"
-                      class="rounded-none"
-                      variant="soft"
-                      @click="showEditListDialog('roles', localCopyUser.roles)"
-                    />
-                  </template>
-                </UBadge>
+                />
                 <UButton
-                  icon="ic-outline-plus"
+                  icon="uil-pen"
                   @click="showEditListDialog('roles', localCopyUser.roles)"
                 />
               </div>
@@ -537,21 +528,12 @@ watch(opened, () => {
                 <UBadge
                   v-for="group in localCopyUser.groups"
                   :label="group.name"
-                  class="pr-0 py-0 gap-2 overflow-hidden"
+                  class="overflow-hidden"
                   variant="solid"
                   :color="group.name === 'Администратор' ? 'secondary' : 'success'"
-                >
-                  <template #trailing>
-                    <UButton
-                      icon="boxicons-trash-filled"
-                      class="rounded-none"
-                      variant="soft"
-                      @click="showEditListDialog('groups', localCopyUser.groups)"
-                    />
-                  </template>
-                </UBadge>
+                />
                 <UButton
-                  icon="ic-outline-plus"
+                  icon="uil-pen"
                   @click="showEditListDialog('groups', localCopyUser.groups)"
                 />
               </div>
