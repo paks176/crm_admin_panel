@@ -1,0 +1,22 @@
+mutation changeRoles(
+  $userIds: [ID!]!,
+  $toBind: [ID!],
+  $toUnbind: [ID!],
+  $runBind: Boolean!
+  $runUnbind: Boolean!
+) {
+
+  bindRoles(userIds: $userIds, roleIds: $toBind) @include(if: $runBind) {
+    id
+    roles {
+      id
+    }
+  }
+
+  unbindRoles(userIds: $userIds, roleIds: $toUnbind) @include(if: $runUnbind) {
+    id
+    roles {
+      id
+    }
+  }
+}

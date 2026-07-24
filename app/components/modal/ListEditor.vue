@@ -5,12 +5,12 @@ import ALL_GROUPS from '~/graphql/queries/AllGroups.graphql'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
 
-import bindRolesService from '~/graphql/services/bindRolesService.js'
+import changeRolesService from '~/graphql/services/changeRolesService.js'
 import bindGroupsService from '~/graphql/services/bindGroupsService.js'
 
 type BindingTasks = {
   toBind: string[],
-  toUnBind: string[]
+  toUnbind: string[]
 }
 
 const $props = defineProps<{
@@ -23,7 +23,7 @@ const $props = defineProps<{
   }
 }>()
 
-const $emits = defineEmits(['submit', 'cancel'])
+const $emits = defineEmits(['submit', 'close'])
 
 const toast = useToast()
 
@@ -132,7 +132,7 @@ const moveItem = <T extends User | Role | Group>(item: T, action: 'add' | 'remov
 const getBindingTasks = (): BindingTasks => {
   const result: BindingTasks = {
     toBind: [],
-    toUnBind: []
+    toUnbind: []
   }
   const oldList = [...$props.listEditData.oldList]
   const newList = [...chosenEntities.value]
@@ -141,7 +141,7 @@ const getBindingTasks = (): BindingTasks => {
     // если элементы были изначально
     if (!chosenEntities.value.length) {
       // элементы были, но все удалили
-      result.toUnBind = oldList.map((entity) => entity.id)
+      result.toUnbind = oldList.map((entity) => entity.id)
     } else {
       chosenEntities.value.forEach((chosenEntity) => {
         const newItem = !(oldList.find((oldEntity) => oldEntity.id === chosenEntity.id))
@@ -153,7 +153,7 @@ const getBindingTasks = (): BindingTasks => {
       oldList.forEach((oldEntity) => {
         const oldItem = !(newList.find((newEntity) => newEntity.id === oldEntity.id))
         if (oldItem) {
-          result.toUnBind.push(oldEntity.id)
+          result.toUnbind.push(oldEntity.id)
         }
       })
     }
@@ -166,42 +166,51 @@ const getBindingTasks = (): BindingTasks => {
 }
 
 const onSubmit = async () => {
-  const tasks = getBindingTasks()
-  console.log(tasks)
-  // let bindAction
-  // let IdsKey = ''
-  // const sourceIds = chosenEntities.value.map((entity) => entity.id)
-  // switch ($props.listEditData.target) {
-  //   case 'groups':
-  //     bindAction = bindRolesService
-  //     IdsKey = 'groupsIds'
-  //     break
-  //   case 'roles': {
-  //     bindAction = bindGroupsService
-  //     IdsKey = 'roleIds'
-  //     break
-  //   }
-  // }
-  // if (bindAction) {
-  //   isLoadingSubmit.value = true
-  //   try {
-  //     await bindAction({
-  //       userIds: [$props.listEditData.entityId],
-  //       [IdsKey]: sourceIds
-  //     })
-  //   } catch (error: unknown) {
-  //     const localError = error as ApolloError
-  //     console.error(localError.message)
-  //     toast.add({
-  //       title: 'Ошибка привязки',
-  //       description: localError.message,
-  //       icon: 'i-lucide-check',
-  //       color: 'error'
-  //     })
-  //   } finally {
-  //     isLoadingSubmit.value = false
-  //   }
-  // }
+  let bindAction
+  switch ($props.listEditData.target) {
+    case 'groups':
+      bindAction = bindGroupsService
+      break
+    case 'roles': {
+      bindAction = changeRolesService
+      break
+    }
+  }
+  if (bindAction) {
+    const tasks = getBindingTasks()
+    if (tasks.toBind.length || tasks.toUnbind.length) {
+      isLoadingSubmit.value = true
+      try {
+        const payload = {
+          userIds: [$props.listEditData.entityId],
+          toBind: tasks.toBind,
+          toUnbind: tasks.toUnbind,
+          runBind: tasks.toBind.length > 0,
+          runUnbind: tasks.toUnbind.length > 0
+        }
+        await bindAction(payload)
+        $emits('close', $props.listEditData.entityId)
+      } catch (error: unknown) {
+        const localError = error as ApolloError
+        console.error(localError.message)
+        toast.add({
+          title: 'Ошибка привязки',
+          description: localError.message,
+          icon: 'i-lucide-check',
+          color: 'error'
+        })
+      } finally {
+        isLoadingSubmit.value = false
+      }
+    } else {
+      toast.add({
+        title: 'Нет изменившихся списков',
+        description: '',
+        icon: 'i-lucide-check',
+        color: 'info'
+      })
+    }
+  }
 }
 
 watch(() => $props.showModal, async () => {
@@ -242,6 +251,8 @@ watch(() => $props.showModal, async () => {
     <template #body>
 
       <div class="flex">
+        <LoadingCover :show="isLoadingSubmit" />
+
         <div class="border-r border-light-gray pr-4 w-1/2">
           <div class="mb-4 flex gap-4 content-between items-center">
             <p class="text-muted">Все {{ target }}</p>
@@ -304,10 +315,14 @@ watch(() => $props.showModal, async () => {
           label="Отмена"
           color="neutral"
           variant="subtle"
-          @click="$emits('cancel', listEditData.entityId)"
+          :disabled="isLoadingSubmit"
+          @click="$emits('close', listEditData.entityId)"
         />
 
-        <UButton :disabled="isLoadingSubmit" @click="onSubmit">
+        <UButton
+          :disabled="isLoadingSubmit"
+          @click="onSubmit"
+        >
           Cохранить
         </UButton>
       </div>

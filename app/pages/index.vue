@@ -255,7 +255,7 @@ onMounted(async () => {
           <ListEditor
             :list-edit-data="listEditData"
             :show-modal="showListEditorModal"
-            @cancel="closeListEditModal"
+            @close="closeListEditModal"
           />
         </template>
       </UDashboardNavbar>
