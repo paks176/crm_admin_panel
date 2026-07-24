@@ -67,11 +67,11 @@ const hasChanges = ref(false)
 
 const isLoading = ref(false)
 
-const showEditListDialog = (target: string, oldList: Role[] | []): void => {
+const showEditListDialog = (target: string, oldList: User[] | []): void => {
   opened.value = false
   $emits('editList', {
     entityId: $props.groupId,
-    source: 'users',
+    source: 'groups',
     target,
     oldList
   })
@@ -305,8 +305,9 @@ watch(opened, () => {
             <p class="font-semibold">{{ localCopyGroup?.supervisors }}</p>
           </div>
 
+          <!--    ToDo: прокидывать список участников когда они появятся     -->
           <UButton
-            :disabled="!hasChanges"
+            @click="showEditListDialog('users', [])"
           >
             Добавить участников
           </UButton>

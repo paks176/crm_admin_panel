@@ -182,7 +182,7 @@ const onSubmit = async () => {
       isLoadingSubmit.value = true
       try {
         const payload = {
-          userIds: [$props.listEditData.entityId],
+          userIds: [...$props.listEditData.entityId],
           toBind: tasks.toBind,
           toUnbind: tasks.toUnbind,
           runBind: tasks.toBind.length > 0,

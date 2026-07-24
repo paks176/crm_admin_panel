@@ -83,3 +83,10 @@ export interface User extends GraphQlEntity {
 }
 
 export type MainEntities = 'users' | 'groups' | 'roles'
+
+export type ListEditData = {
+  entityId: string
+  oldList: User[] | Group[] | Role[] | []
+  target: MainEntities | ''
+  source: MainEntities | ''
+}

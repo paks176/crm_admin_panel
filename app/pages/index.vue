@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type {User, ApolloError, QueryResponse, Role, GroupShort, Group, MainEntities} from '~/types'
+import type { User, ApolloError, QueryResponse, Role, GroupShort, ListEditData } from '~/types'
 import ALL_USERS from '~/graphql/queries/AllUsers.graphql'
 import { format } from 'date-fns'
 import ListEditor from "~/components/modal/ListEditor.vue";
@@ -190,13 +190,6 @@ const name = computed({
     table.value?.tableApi?.getColumn('name')?.setFilterValue(value || undefined)
   }
 })
-
-type ListEditData = {
-  entityId: string
-  oldList: User[] | Group[] | Role[] | []
-  target: MainEntities | ''
-  source: MainEntities | ''
-}
 
 const listEditData: ListEditData = {
   entityId: '',
