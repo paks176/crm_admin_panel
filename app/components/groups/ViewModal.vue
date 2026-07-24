@@ -25,7 +25,8 @@ const localCopyGroup = reactive<Group>({
   parent_id: null,
   parent: null,
   supervisors: [],
-  isExpandedAccess: false
+  isExpandedAccess: false,
+  members: []
 })
 
 const groupInfo = reactive({
@@ -215,8 +216,8 @@ const getGroup = async (groupId: string): Promise<void> => {
       fetchPolicy: 'no-cache'
     })
 
-    if (data?.User) {
-      applyGroupData(data.User)
+    if (data?.Group) {
+      applyGroupData(data.Group)
     }
   } catch (error: unknown) {
     const localError = error as ApolloError
@@ -249,6 +250,7 @@ const applyGroupData = (groupData: Group): void => {
   localCopyGroup.parent = groupData.parent
   localCopyGroup.supervisors = groupData.supervisors
   localCopyGroup.isExpandedAccess = groupData.isExpandedAccess
+  localCopyGroup.members = groupData.members
 }
 
 const unwatchChanges = watch(groupInfo, () => {
@@ -291,23 +293,50 @@ watch(opened, () => {
         <LoadingCover :show="isLoading" />
         <div class="user-card" ref="userFormRef" :key="groupCardKey">
           <div class="user-card__item flex gap-4 my-5">
+            <p class="w-1/4">ID:</p>
+            <p class="font-semibold">{{ localCopyGroup?.id }}</p>
+          </div>
+
+          <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Название:</p>
             <p class="font-semibold">{{ localCopyGroup?.name }}</p>
           </div>
 
-          <div class="user-card__item flex gap-4 my-5">
+          <div v-if="localCopyGroup.parent" class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Родитель:</p>
-            <p class="font-semibold">{{ localCopyGroup?.parent }}</p>
+            <p class="font-semibold">{{ localCopyGroup.parent }}</p>
           </div>
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Руководители:</p>
-            <p class="font-semibold">{{ localCopyGroup?.supervisors }}</p>
+            <div
+              v-if="localCopyGroup?.supervisors.length"
+              class="flex flex-wrap gap-2"
+            >
+              <UBadge
+                v-for="user in localCopyGroup.supervisors"
+                :label="user.name"
+                variant="soft"
+              />
+            </div>
+            <UButton
+              icon="uil-pen"
+            />
+          </div>
+
+          <div v-if="localCopyGroup.members.length" class="user-card__item flex flex-col gap-4 my-5">
+            <p class="w-1/4">Участники:</p>
+
+            <UBadge
+              v-for="user in localCopyGroup.members"
+              :label="user.name"
+              variant="soft"
+            />
           </div>
 
           <!--    ToDo: прокидывать список участников когда они появятся     -->
           <UButton
-            @click="showEditListDialog('users', [])"
+            @click="showEditListDialog('users', localCopyGroup.members)"
           >
             Добавить участников
           </UButton>

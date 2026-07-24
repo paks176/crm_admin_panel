@@ -17,5 +17,9 @@ query Group($groupId: ID!) {
       id
       name
     }
+    members {
+      id
+      name
+    }
   }
 }

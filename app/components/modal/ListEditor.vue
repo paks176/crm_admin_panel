@@ -13,11 +13,19 @@ type BindingTasks = {
   toUnbind: string[]
 }
 
+type RequestPayload = {
+  userIds: string[],
+  toBind: string[],
+  toUnbind: string[],
+  runBind: boolean,
+  runUnbind: boolean
+}
+
 const $props = defineProps<{
   showModal: boolean,
   listEditData: {
     oldList: User[] | Group[] | Role[] | [],
-    source: MainEntities | '' // что меняем
+    source: MainEntities | '' // что меняем или с какой страницы вызвали модалку
     target: MainEntities | '' // у чего меняем
     entityId: string
   }
@@ -161,33 +169,73 @@ const getBindingTasks = (): BindingTasks => {
       // если элементов не было, то биндим все
       result.toBind = newList.map((entity) => entity.id)
   }
-
   return result
+}
+
+const getPayload = (): RequestPayload => {
+  const tasks = getBindingTasks()
+
+  const payload: RequestPayload = {
+    userIds: [],
+    toBind: tasks.toBind,
+    toUnbind: tasks.toUnbind,
+    runBind: tasks.toBind.length > 0,
+    runUnbind: tasks.toUnbind.length > 0
+  }
+
+  if ($props.listEditData.source === 'users') {
+    payload.userIds = [ $props.listEditData.entityId ]
+  } else {
+    debugger
+    const copyOfChosen = [...chosenEntities.value]
+    const copyOfOld = [ ...$props.listEditData.oldList ]
+    const toBindRaw = copyOfChosen.filter((chosenItem) => {
+      return !(copyOfOld.find((oldItem) => oldItem.id === chosenItem.id ))
+    })
+
+    if (toBindRaw.length) {
+      payload.toBind = toBindRaw.map((item) => item.id)
+    } else payload.toBind = []
+
+    payload.userIds = chosenEntities.value.map((entity) => entity.id) //
+  }
+
+  return payload
 }
 
 const onSubmit = async () => {
   let bindAction
-  switch ($props.listEditData.target) {
-    case 'groups':
-      bindAction = changeGroupsService
-      break
-    case 'roles': {
-      bindAction = changeRolesService
-      break
-    }
+  if (
+    $props.listEditData.source === 'users' &&
+    $props.listEditData.target === 'roles'
+  ) {
+    bindAction = changeRolesService
+  } else if (
+    $props.listEditData.source === 'users' &&
+    $props.listEditData.target === 'groups'
+  ) {
+    bindAction = changeGroupsService
+  } else if (
+    $props.listEditData.source === 'roles' &&
+    $props.listEditData.target === 'users'
+  ) {
+    bindAction = changeRolesService
+  } else if (
+    $props.listEditData.source === 'groups' &&
+    $props.listEditData.target === 'users'
+  ) {
+    bindAction = changeGroupsService
   }
+
   if (bindAction) {
-    const tasks = getBindingTasks()
-    if (tasks.toBind.length || tasks.toUnbind.length) {
+    const payload = getPayload()
+
+    console.log(payload)
+
+    if (payload.toBind.length || payload.toUnbind.length) {
       isLoadingSubmit.value = true
       try {
-        const payload = {
-          userIds: [...$props.listEditData.entityId],
-          toBind: tasks.toBind,
-          toUnbind: tasks.toUnbind,
-          runBind: tasks.toBind.length > 0,
-          runUnbind: tasks.toUnbind.length > 0
-        }
+        const payload = getPayload()
         await bindAction(payload)
         $emits('close', $props.listEditData.entityId)
       } catch (error: unknown) {
@@ -215,6 +263,7 @@ const onSubmit = async () => {
 
 watch(() => $props.showModal, async () => {
   opened.value = $props.showModal
+  console.log($props.listEditData)
   if (opened.value) {
     source.value = ruSource($props.listEditData.source)
     target.value = ruTarget($props.listEditData.target)
@@ -272,7 +321,7 @@ watch(() => $props.showModal, async () => {
             <UBadge
               v-for="entity in allEntities"
               :label="entity.name"
-              class="pr-0 py-0 gap-2 overflow-hidden"
+              class="pr-0 py-0 gap-2 shrink-0 overflow-hidden"
               variant="soft"
             >
               <template #trailing>
@@ -294,7 +343,7 @@ watch(() => $props.showModal, async () => {
             <UBadge
               v-for="entity in chosenEntities"
               :label="entity.name"
-              class="pr-0 py-0 gap-2 overflow-hidden"
+              class="pr-0 py-0 gap-2 shrink-0 overflow-hidden"
               variant="soft"
             >
               <template #trailing>

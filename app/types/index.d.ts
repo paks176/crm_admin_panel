@@ -40,7 +40,8 @@ export type Group = {
   name: String
   parent: Group | null
   parent_id: ID | null
-  supervisors: [User] | []
+  supervisors: User[] | []
+  members: User[] | []
 }
 
 // ToDo: interface GroupFull
