@@ -31,7 +31,7 @@ const $props = defineProps<{
   }
 }>()
 
-const $emits = defineEmits(['submit', 'close'])
+const $emits = defineEmits(['submit', 'close', 'refreshList'])
 
 const toast = useToast()
 
@@ -186,7 +186,6 @@ const getPayload = (): RequestPayload => {
   if ($props.listEditData.source === 'users') {
     payload.userIds = [ $props.listEditData.entityId ]
   } else {
-    debugger
     const copyOfChosen = [...chosenEntities.value]
     const copyOfOld = [ ...$props.listEditData.oldList ]
     const toBindRaw = copyOfChosen.filter((chosenItem) => {
@@ -194,10 +193,9 @@ const getPayload = (): RequestPayload => {
     })
 
     if (toBindRaw.length) {
-      payload.toBind = toBindRaw.map((item) => item.id)
+      payload.toBind = [$props.listEditData.entityId]
+      payload.userIds = toBindRaw.map((item) => item.id)
     } else payload.toBind = []
-
-    payload.userIds = chosenEntities.value.map((entity) => entity.id) //
   }
 
   return payload
@@ -235,8 +233,8 @@ const onSubmit = async () => {
     if (payload.toBind.length || payload.toUnbind.length) {
       isLoadingSubmit.value = true
       try {
-        const payload = getPayload()
         await bindAction(payload)
+        $emits('refreshList')
         $emits('close', $props.listEditData.entityId)
       } catch (error: unknown) {
         const localError = error as ApolloError

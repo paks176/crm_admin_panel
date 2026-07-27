@@ -183,6 +183,7 @@ onMounted(async () => {
           <ListEditor
             :list-edit-data="listEditData"
             :show-modal="showListEditorModal"
+            @refresh-list="refreshHandler"
             @close="closeListEditModal"
           />
         </template>

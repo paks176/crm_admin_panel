@@ -472,6 +472,7 @@ watch(opened, () => {
       <UCard class="relative" variant="soft">
         <LoadingCover :show="isLoading" />
         <div class="user-card" ref="userFormRef" :key="userCardKey">
+
           <div class="user-card__top mb-8 flex items-center gap-4">
             <div class="user-card__avatar relative overflow-hidden rounded-[50%] cursor-pointer">
               <img :src="localCopyUser?.avatar ? localCopyUser.avatar.file_id : '/images/default_avatar.jpg'" alt="Аватар">
@@ -484,6 +485,7 @@ watch(opened, () => {
               {{ localCopyUser?.name }}
             </h3>
           </div>
+
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Email (Login):</p>
             <p class="font-semibold">{{ localCopyUser?.email }}</p>
@@ -523,14 +525,14 @@ watch(opened, () => {
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Группы:</p>
-            <template v-if="localCopyUser?.roles.length">
+            <template v-if="localCopyUser?.groups.length">
               <div class="flex flex-wrap gap-2">
                 <UBadge
                   v-for="group in localCopyUser.groups"
-                  :label="group.name"
+                  :label="group?.name"
                   class="overflow-hidden"
                   variant="solid"
-                  :color="group.name === 'Администратор' ? 'secondary' : 'success'"
+                  :color="group?.name === 'Администратор' ? 'secondary' : 'success'"
                 />
                 <UButton
                   icon="uil-pen"
@@ -545,91 +547,32 @@ watch(opened, () => {
 
           <hr class="my-5 main-divider">
 
-          <div class="my-5">
-            <h3 class="mb-5 font-semibold">Пользовательская информация</h3>
-            <div class="user-card__item flex gap-4 my-5">
-              <p class="w-1/4">Полное имя:</p>
-              <div class="user-card__item__field flex gap-2">
-                <template v-if="userInfo.fullname.edit">
-                  <UInput
-                    v-if="userInfo.fullname.edit"
-                    v-model="userInfo.fullname.value"
-                    @blur="switchEdit('fullname')"
-                    @keyup.enter="switchEdit('fullname')"
-                    @keyup.esc.self="switchEdit('fullname')"
-                    variant="outline"
-                  />
+          <details>
+            <summary>
+              <span class="font-semibold cursor-pointer">Пользовательская информация</span>
+            </summary>
 
-                  <UButton
-                    v-if="userInfo.fullname.value"
-                    trailing-icon="zondicons-checkmark"
-                    size="sm"
-                    title="Сохранить"
-                    variant="soft"
-                    @click="switchEdit('fullname')"
-                  />
-                  <UButton
-                    v-else
-                    trailing-icon="mdi-cancel-bold"
-                    size="sm"
-                    title="Выйти из редактирования"
-                    variant="soft"
-                    @click="switchEdit('fullname')"
-                  />
-                </template>
-
-                <div class="user-card__item__field flex gap-2" v-else>
-                  <p :class="userInfo.fullname.value ? 'font-semibold' : 'italic text-gray'">
-                    {{ userInfo.fullname.value || 'Не заполнено' }}
-                  </p>
-                  <UButton
-                    trailing-icon="uil-pen"
-                    size="sm"
-                    title="Редактировать"
-                    variant="soft"
-                    @click="switchEdit('fullname')"
-                  />
-                  <UButton
-                    v-if="userInfo.fullname.value"
-                    trailing-icon="mdi-cancel-bold"
-                    size="sm"
-                    title="Удалить значение"
-                    variant="soft"
-                    @click="clearField('fullname')"
-                  />
-                  <UButton
-                    v-if="userInfo.fullname.value !== userInfo.fullname.oldValue"
-                    trailing-icon="nrk-back"
-                    size="sm"
-                    title="Отменить изменение"
-                    variant="soft"
-                    @click="userInfo.fullname.value = userInfo.fullname.oldValue"
-                  />
-                </div>
-              </div>
-            </div>
-            <hr>
-            <div class="user-card__item flex gap-4 my-5">
-              <p class="w-1/4">Электронные почты:</p>
-              <div class="flex flex-col gap-2">
-                <div v-for="(emailField, index) in userInfo.emails" class="flex gap-2 items-start">
-                  <template v-if="emailField.edit">
+            <div class="my-5">
+              <div class="user-card__item flex gap-4 my-5">
+                <p class="w-1/4">Полное имя:</p>
+                <div class="user-card__item__field flex gap-2">
+                  <template v-if="userInfo.fullname.edit">
                     <UInput
-                      v-model="emailField.value"
-                      @blur="switchEdit('emails', index)"
-                      @keyup.enter="switchEdit('emails', index)"
-                      @keyup.esc="switchEdit('emails', index)"
+                      v-if="userInfo.fullname.edit"
+                      v-model="userInfo.fullname.value"
+                      @blur="switchEdit('fullname')"
+                      @keyup.enter="switchEdit('fullname')"
+                      @keyup.esc.self="switchEdit('fullname')"
                       variant="outline"
-                      name="input-emails"
                     />
 
                     <UButton
-                      v-if="emailField.value"
+                      v-if="userInfo.fullname.value"
                       trailing-icon="zondicons-checkmark"
                       size="sm"
                       title="Сохранить"
                       variant="soft"
-                      @click="switchEdit('emails', index)"
+                      @click="switchEdit('fullname')"
                     />
                     <UButton
                       v-else
@@ -637,213 +580,277 @@ watch(opened, () => {
                       size="sm"
                       title="Выйти из редактирования"
                       variant="soft"
-                      @click="switchEdit('emails', index)"
+                      @click="switchEdit('fullname')"
                     />
                   </template>
-                  <template v-else>
-                    <p :class="emailField.value ? 'font-semibold' : 'italic text-gray'">
-                      {{ emailField.value || 'Не заполнено' }}
+
+                  <div class="user-card__item__field flex gap-2" v-else>
+                    <p :class="userInfo.fullname.value ? 'font-semibold' : 'italic text-gray'">
+                      {{ userInfo.fullname.value || 'Не заполнено' }}
                     </p>
-                    <div class="flex gap-2">
+                    <UButton
+                      trailing-icon="uil-pen"
+                      size="sm"
+                      title="Редактировать"
+                      variant="soft"
+                      @click="switchEdit('fullname')"
+                    />
+                    <UButton
+                      v-if="userInfo.fullname.value"
+                      trailing-icon="mdi-cancel-bold"
+                      size="sm"
+                      title="Удалить значение"
+                      variant="soft"
+                      @click="clearField('fullname')"
+                    />
+                    <UButton
+                      v-if="userInfo.fullname.value !== userInfo.fullname.oldValue"
+                      trailing-icon="nrk-back"
+                      size="sm"
+                      title="Отменить изменение"
+                      variant="soft"
+                      @click="userInfo.fullname.value = userInfo.fullname.oldValue"
+                    />
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <div class="user-card__item flex gap-4 my-5">
+                <p class="w-1/4">Электронные почты:</p>
+                <div class="flex flex-col gap-2">
+                  <div v-for="(emailField, index) in userInfo.emails" class="flex gap-2 items-start">
+                    <template v-if="emailField.edit">
+                      <UInput
+                        v-model="emailField.value"
+                        @blur="switchEdit('emails', index)"
+                        @keyup.enter="switchEdit('emails', index)"
+                        @keyup.esc="switchEdit('emails', index)"
+                        variant="outline"
+                        name="input-emails"
+                      />
+
                       <UButton
-                        trailing-icon="uil-pen"
+                        v-if="emailField.value"
+                        trailing-icon="zondicons-checkmark"
                         size="sm"
-                        title="Редактировать"
+                        title="Сохранить"
                         variant="soft"
                         @click="switchEdit('emails', index)"
                       />
                       <UButton
-                        v-if="index > 0 || emailField.value"
+                        v-else
                         trailing-icon="mdi-cancel-bold"
                         size="sm"
-                        title="Удалить значение"
+                        title="Выйти из редактирования"
                         variant="soft"
-                        @click="clearField('emails', index)"
+                        @click="switchEdit('emails', index)"
                       />
-                      <UButton
-                        v-if="userInfo.emails[index].oldValue && (userInfo.emails[index].value !== userInfo.emails[index].oldValue)"
-                        trailing-icon="nrk-back"
-                        size="sm"
-                        title="Отменить изменение"
-                        variant="soft"
-                        @click="cancelChange('emails', index)"
-                      />
-                    </div>
-                  </template>
+                    </template>
+                    <template v-else>
+                      <p :class="emailField.value ? 'font-semibold' : 'italic text-gray'">
+                        {{ emailField.value || 'Не заполнено' }}
+                      </p>
+                      <div class="flex gap-2">
+                        <UButton
+                          trailing-icon="uil-pen"
+                          size="sm"
+                          title="Редактировать"
+                          variant="soft"
+                          @click="switchEdit('emails', index)"
+                        />
+                        <UButton
+                          v-if="index > 0 || emailField.value"
+                          trailing-icon="mdi-cancel-bold"
+                          size="sm"
+                          title="Удалить значение"
+                          variant="soft"
+                          @click="clearField('emails', index)"
+                        />
+                        <UButton
+                          v-if="userInfo.emails[index].oldValue && (userInfo.emails[index].value !== userInfo.emails[index].oldValue)"
+                          trailing-icon="nrk-back"
+                          size="sm"
+                          title="Отменить изменение"
+                          variant="soft"
+                          @click="cancelChange('emails', index)"
+                        />
+                      </div>
+                    </template>
+                  </div>
+                  <UButton
+                    class="mt-4 w-min whitespace-nowrap"
+                    icon="ic-outline-plus"
+                    size="sm"
+                    variant="soft"
+                    v-if="userInfo.emails[0]?.value && checkIfAllUnfocused('emails')"
+                    @click="addFieldAndFocus('emails')"
+                  >
+                    Добавить почту
+                  </UButton>
                 </div>
-                <UButton
-                  class="mt-4 w-min whitespace-nowrap"
-                  icon="ic-outline-plus"
-                  size="sm"
-                  variant="soft"
-                  v-if="userInfo.emails[0]?.value && checkIfAllUnfocused('emails')"
-                  @click="addFieldAndFocus('emails')"
-                >
-                  Добавить почту
-                </UButton>
               </div>
-            </div>
-            <hr>
-            <div class="user-card__item flex gap-4 my-5">
-              <p class="w-1/4">Телефоны:</p>
-              <div class="flex flex-col gap-2">
-                <div v-for="(phoneField, index) in userInfo.phones" class="flex gap-2 items-start">
-                  <template  v-if="phoneField.edit">
-                    <UInput
-                      v-model="phoneField.value"
-                      @blur="switchEdit('phones', index)"
-                      @keyup.enter="switchEdit('phones', index)"
-                      @keyup.esc="switchEdit('phones', index)"
-                      variant="outline"
-                      name="input-phones"
-                    />
-                    <UButton
-                      v-if="phoneField.value"
-                      trailing-icon="zondicons-checkmark"
-                      size="sm"
-                      title="Сохранить"
-                      variant="soft"
-                      @click="switchEdit('phones', index)"
-                    />
-                    <UButton
-                      v-else
-                      trailing-icon="mdi-cancel-bold"
-                      size="sm"
-                      title="Выйти из редактирования"
-                      variant="soft"
-                      @click="switchEdit('phones', index)"
-                    />
-                  </template>
-
-                  <template v-else>
-                    <p :class="phoneField.value ? 'font-semibold' : 'italic text-gray'">
-                      {{ phoneField.value || 'Не заполнено' }}
-                    </p>
-                    <div class="flex gap-2">
+              <hr>
+              <div class="user-card__item flex gap-4 my-5">
+                <p class="w-1/4">Телефоны:</p>
+                <div class="flex flex-col gap-2">
+                  <div v-for="(phoneField, index) in userInfo.phones" class="flex gap-2 items-start">
+                    <template  v-if="phoneField.edit">
+                      <UInput
+                        v-model="phoneField.value"
+                        @blur="switchEdit('phones', index)"
+                        @keyup.enter="switchEdit('phones', index)"
+                        @keyup.esc="switchEdit('phones', index)"
+                        variant="outline"
+                        name="input-phones"
+                      />
                       <UButton
-                        trailing-icon="uil-pen"
+                        v-if="phoneField.value"
+                        trailing-icon="zondicons-checkmark"
                         size="sm"
-                        title="Редактировать"
+                        title="Сохранить"
                         variant="soft"
                         @click="switchEdit('phones', index)"
                       />
                       <UButton
-                        v-if="phoneField.value"
+                        v-else
                         trailing-icon="mdi-cancel-bold"
                         size="sm"
-                        title="Удалить значение"
+                        title="Выйти из редактирования"
                         variant="soft"
-                        @click="clearField('phones', index)"
+                        @click="switchEdit('phones', index)"
                       />
-                      <UButton
-                        v-if="userInfo.phones[index].oldValue && (userInfo.phones[index].value !== userInfo.phones[index].oldValue)"
-                        trailing-icon="nrk-back"
-                        size="sm"
-                        title="Отменить изменение"
-                        variant="soft"
-                        @click="cancelChange('phones', index)"
-                      />
-                    </div>
-                  </template>
-                </div>
-                <UButton
-                  class="mt-4 w-min whitespace-nowrap"
-                  icon="ic-outline-plus"
-                  size="sm"
-                  variant="soft"
-                  v-if="userInfo.phones[0]?.value && checkIfAllUnfocused('phones')"
-                  @click="addFieldAndFocus('phones')"
-                >
-                  Добавить телефон
-                </UButton>
-              </div>
-            </div>
-            <hr>
-            <div class="user-card__item flex gap-4 my-5">
-              <p class="w-1/4">Адреса:</p>
-              <div class="flex flex-col gap-2">
-                <div v-for="(addressField, index) in userInfo.addresses" class="flex gap-2 items-start">
-                  <template v-if="addressField.edit">
-                    <UInput
-                      v-model="addressField.value"
-                      @blur="switchEdit('addresses', index)"
-                      @keyup.enter="switchEdit('addresses', index)"
-                      @keyup.esc="switchEdit('addresses', index)"
-                      variant="outline"
-                      name="input-addresses"
-                    />
-                    <UButton
-                      v-if="addressField.value"
-                      trailing-icon="zondicons-checkmark"
-                      size="sm"
-                      title="Сохранить"
-                      variant="soft"
-                      @click="switchEdit('addresses', index)"
-                    />
-                    <UButton
-                      v-else
-                      trailing-icon="mdi-cancel-bold"
-                      size="sm"
-                      title="Выйти из редактирования"
-                      variant="soft"
-                      @click="switchEdit('addresses', index)"
-                    />
-                  </template>
+                    </template>
 
-                  <template v-else>
-                    <p :class="addressField.value ? 'font-semibold' : 'italic text-gray'">
-                      {{ addressField.value || 'Не заполнено' }}
-                    </p>
-                    <div class="flex gap-2">
+                    <template v-else>
+                      <p :class="phoneField.value ? 'font-semibold' : 'italic text-gray'">
+                        {{ phoneField.value || 'Не заполнено' }}
+                      </p>
+                      <div class="flex gap-2">
+                        <UButton
+                          trailing-icon="uil-pen"
+                          size="sm"
+                          title="Редактировать"
+                          variant="soft"
+                          @click="switchEdit('phones', index)"
+                        />
+                        <UButton
+                          v-if="phoneField.value"
+                          trailing-icon="mdi-cancel-bold"
+                          size="sm"
+                          title="Удалить значение"
+                          variant="soft"
+                          @click="clearField('phones', index)"
+                        />
+                        <UButton
+                          v-if="userInfo.phones[index].oldValue && (userInfo.phones[index].value !== userInfo.phones[index].oldValue)"
+                          trailing-icon="nrk-back"
+                          size="sm"
+                          title="Отменить изменение"
+                          variant="soft"
+                          @click="cancelChange('phones', index)"
+                        />
+                      </div>
+                    </template>
+                  </div>
+                  <UButton
+                    class="mt-4 w-min whitespace-nowrap"
+                    icon="ic-outline-plus"
+                    size="sm"
+                    variant="soft"
+                    v-if="userInfo.phones[0]?.value && checkIfAllUnfocused('phones')"
+                    @click="addFieldAndFocus('phones')"
+                  >
+                    Добавить телефон
+                  </UButton>
+                </div>
+              </div>
+              <hr>
+              <div class="user-card__item flex gap-4 my-5">
+                <p class="w-1/4">Адреса:</p>
+                <div class="flex flex-col gap-2">
+                  <div v-for="(addressField, index) in userInfo.addresses" class="flex gap-2 items-start">
+                    <template v-if="addressField.edit">
+                      <UInput
+                        v-model="addressField.value"
+                        @blur="switchEdit('addresses', index)"
+                        @keyup.enter="switchEdit('addresses', index)"
+                        @keyup.esc="switchEdit('addresses', index)"
+                        variant="outline"
+                        name="input-addresses"
+                      />
                       <UButton
-                        trailing-icon="uil-pen"
+                        v-if="addressField.value"
+                        trailing-icon="zondicons-checkmark"
                         size="sm"
-                        title="Редактировать"
+                        title="Сохранить"
                         variant="soft"
                         @click="switchEdit('addresses', index)"
                       />
                       <UButton
-                        v-if="addressField.value"
+                        v-else
                         trailing-icon="mdi-cancel-bold"
                         size="sm"
-                        title="Удалить значение"
+                        title="Выйти из редактирования"
                         variant="soft"
-                        @click="clearField('addresses', index)"
+                        @click="switchEdit('addresses', index)"
                       />
-                      <UButton
-                        v-if="userInfo.addresses[index].oldValue && (userInfo.addresses[index].value !== userInfo.addresses[index].oldValue)"
-                        trailing-icon="nrk-back"
-                        size="sm"
-                        title="Отменить изменение"
-                        variant="soft"
-                        @click="cancelChange('addresses', index)"
-                      />
-                    </div>
-                  </template>
-                </div>
-                <UButton
-                  class="mt-4 w-min whitespace-nowrap"
-                  icon="ic-outline-plus"
-                  size="sm"
-                  variant="soft"
-                  v-if="userInfo.addresses[0]?.value && checkIfAllUnfocused('addresses')"
-                  @click="addFieldAndFocus('addresses')"
-                >
-                  Добавить адрес
-                </UButton>
-              </div>
-            </div>
-            <hr>
-          </div>
+                    </template>
 
-          <div class="mt-8 flex justify-end">
-            <UButton
-              @click="updateUserInfoRequest"
-              :disabled="!hasChanges"
-            >
-              Применить изменения
-            </UButton>
-          </div>
+                    <template v-else>
+                      <p :class="addressField.value ? 'font-semibold' : 'italic text-gray'">
+                        {{ addressField.value || 'Не заполнено' }}
+                      </p>
+                      <div class="flex gap-2">
+                        <UButton
+                          trailing-icon="uil-pen"
+                          size="sm"
+                          title="Редактировать"
+                          variant="soft"
+                          @click="switchEdit('addresses', index)"
+                        />
+                        <UButton
+                          v-if="addressField.value"
+                          trailing-icon="mdi-cancel-bold"
+                          size="sm"
+                          title="Удалить значение"
+                          variant="soft"
+                          @click="clearField('addresses', index)"
+                        />
+                        <UButton
+                          v-if="userInfo.addresses[index].oldValue && (userInfo.addresses[index].value !== userInfo.addresses[index].oldValue)"
+                          trailing-icon="nrk-back"
+                          size="sm"
+                          title="Отменить изменение"
+                          variant="soft"
+                          @click="cancelChange('addresses', index)"
+                        />
+                      </div>
+                    </template>
+                  </div>
+                  <UButton
+                    class="mt-4 w-min whitespace-nowrap"
+                    icon="ic-outline-plus"
+                    size="sm"
+                    variant="soft"
+                    v-if="userInfo.addresses[0]?.value && checkIfAllUnfocused('addresses')"
+                    @click="addFieldAndFocus('addresses')"
+                  >
+                    Добавить адрес
+                  </UButton>
+                </div>
+              </div>
+              <hr>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+              <UButton
+                @click="updateUserInfoRequest"
+                :disabled="!hasChanges"
+              >
+                Применить изменения
+              </UButton>
+            </div>
+          </details>
         </div>
       </UCard>
     </template>

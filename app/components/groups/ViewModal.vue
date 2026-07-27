@@ -297,15 +297,21 @@ watch(opened, () => {
             <p class="font-semibold">{{ localCopyGroup?.id }}</p>
           </div>
 
+          <hr>
+
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Название:</p>
             <p class="font-semibold">{{ localCopyGroup?.name }}</p>
           </div>
 
+          <hr>
+
           <div v-if="localCopyGroup.parent" class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Родитель:</p>
             <p class="font-semibold">{{ localCopyGroup.parent }}</p>
           </div>
+
+          <hr v-if="localCopyGroup.parent">
 
           <div class="user-card__item flex gap-4 my-5">
             <p class="w-1/4">Руководители:</p>
@@ -320,26 +326,45 @@ watch(opened, () => {
               />
             </div>
             <UButton
+              disabled
               icon="uil-pen"
             />
           </div>
 
-          <div v-if="localCopyGroup.members.length" class="user-card__item flex flex-col gap-4 my-5">
-            <p class="w-1/4">Участники:</p>
+          <hr v-if="localCopyGroup?.supervisors.length">
 
-            <UBadge
-              v-for="user in localCopyGroup.members"
-              :label="user.name"
-              variant="soft"
-            />
+          <div v-if="localCopyGroup.members.length" class="user-card__item my-5">
+            <p class="w-1/4 mb-3">Участники:</p>
+            <div class="flex wrap gap-2">
+              <UBadge
+                v-for="user in localCopyGroup.members.slice(0, 3)"
+                :label="user.name"
+                variant="soft"
+              />
+            </div>
+
+            <details class="my-3" v-if="localCopyGroup.members.length > 3">
+              <summary class="mb-3">
+                <span class="font-semibold">Еще</span>
+              </summary>
+              <div class="flex wrap gap-2">
+                <UBadge
+                  v-for="user in localCopyGroup.members.slice(3)"
+                  :label="user.name"
+                  variant="soft"
+                />
+              </div>
+            </details>
           </div>
 
-          <!--    ToDo: прокидывать список участников когда они появятся     -->
           <UButton
+            class="mb-3"
             @click="showEditListDialog('users', localCopyGroup.members)"
           >
-            Добавить участников
+            Добавить/убрать участников
           </UButton>
+
+          <hr v-if="localCopyGroup.members.length">
 
           <div class="mt-8 flex justify-end">
             <UButton

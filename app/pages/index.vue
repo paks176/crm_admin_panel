@@ -120,8 +120,10 @@ const columns: Ref<TableColumn<User>[]> = ref([
       const groups: GroupShort[] = row.getValue('groups')
       if (groups.length) {
         const badges = groups.map((group) => {
-          const color = group.name === 'Администратор' ? 'secondary' : 'success'
-          return h(UBadge, { variant: 'solid', color: color, label: group.name })
+          if (group) {
+            const color = group.name === 'Администратор' ? 'secondary' : 'success'
+            return h(UBadge, { variant: 'solid', color: color, label: group.name })
+          }
         })
         return h('div', { class: 'flex flex-wrap gap-2' }, badges)
       }
@@ -248,6 +250,7 @@ onMounted(async () => {
           <ListEditor
             :list-edit-data="listEditData"
             :show-modal="showListEditorModal"
+            @refresh-list="refreshHandler"
             @close="closeListEditModal"
           />
         </template>
