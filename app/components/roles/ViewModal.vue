@@ -409,10 +409,11 @@ watch(opened, () => {
 .tg {
   border-collapse: collapse;
   border-spacing: 0;
+  width: 100%;
 }
 
 .tg td {
-  border-color: black;
+  border-color: var(--color-gray);
   border-style: solid;
   border-width: 1px;
   font-family: Arial, sans-serif;
@@ -420,22 +421,25 @@ watch(opened, () => {
   overflow: hidden;
   padding: 10px 5px;
   word-break: normal;
+  &[rowspan='2'] {
+    font-weight: bold;
+    text-align: start;
+  }
 }
 
 .tg th {
-  border-color: black;
+  border-color: var(--color-gray);
   border-style: solid;
   border-width: 1px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  font-weight: normal;
+  font-weight: bold;
   overflow: hidden;
   padding: 10px 5px;
   word-break: normal;
+  text-align: center;
 }
 
 .tg .tg-0lax {
-  text-align: left;
-  vertical-align: top
+  vertical-align: center;
+  text-align: center;
 }
 </style>
