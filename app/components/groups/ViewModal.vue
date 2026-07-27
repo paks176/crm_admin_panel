@@ -345,7 +345,7 @@ watch(opened, () => {
 
             <details class="my-3" v-if="localCopyGroup.members.length > 3">
               <summary class="mb-3">
-                <span class="font-semibold">Еще</span>
+                <span class="font-semibold cursor-pointer">Еще</span>
               </summary>
               <div class="flex wrap gap-2">
                 <UBadge

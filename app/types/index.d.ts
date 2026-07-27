@@ -24,8 +24,29 @@ export type ApolloError = {
 
 // ----------------------------------------------------
 
+type DocumentActions = {
+  many: {
+    actions: {
+      create: boolean
+      delete: boolean
+      read: boolean
+      update: boolean
+    }
+  }
+  one: {
+    actions: {
+      create: boolean
+      delete: boolean
+      read: boolean
+      update: boolean
+    }
+  }
+}
+
 export interface Role extends GraphQlEntity {
-  name: string
+  documents: Record<string, DocumentActions>
+  members: User[] | []
+  transliterate_name: string
 }
 
 export interface GroupShort extends GraphQlEntity {

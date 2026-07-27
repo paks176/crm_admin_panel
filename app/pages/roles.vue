@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Group, ApolloError, QueryResponse } from '~/types'
+import type {Role, ApolloError, QueryResponse, ListEditData} from '~/types'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
+import ListEditor from "~/components/modal/ListEditor.vue";
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UCheckbox = resolveComponent('UCheckbox')
-const UBadge = resolveComponent('UBadge')
 
 const toast = useToast()
 const table = useTemplateRef('table')
 const requestError = ref('')
-const userToShow: Ref<Group | null> = ref(null)
+const roleToShow: Ref<string> = ref('')
+const showListEditorModal = ref(false)
 
 useHead({
   title: 'Роли'
@@ -27,7 +28,7 @@ const rowSelection = ref({})
 
 const response: QueryResponse<'allRoles', []> = await useAsyncQuery(ALL_ROLES)
 
-let allRoles: Ref<Group[] | []> = computed(() => response?.data?.value?.allRoles || [])
+let allRoles: Ref<Role[] | []> = computed(() => response?.data?.value?.allRoles || [])
 
 const refreshHandler = async () => {
   try {
@@ -52,7 +53,7 @@ const refreshHandler = async () => {
   }
 }
 
-const columns: Ref<TableColumn<Group>[]> = ref([
+const columns: Ref<TableColumn<Role>[]> = ref([
   {
     id: 'select',
     header: ({ table }) =>
@@ -92,11 +93,35 @@ const columns: Ref<TableColumn<Group>[]> = ref([
     cell: ({ row }) => {
       return h('span', {
         class: 'cursor-pointer underline hover:text-primary',
-        onClick: () => userToShow.value = row.original
+        onClick: () => roleToShow.value = row.original.id
       }, row.getValue('name'))
     }
   }
 ])
+
+const listEditData: ListEditData = {
+  entityId: '',
+  oldList: [],
+  target: '',
+  source: ''
+}
+
+const launchListEditing = (dataToEdit: ListEditData): void => {
+  const { entityId, target, source } = dataToEdit
+  if (entityId && target && source) {
+    listEditData.entityId = entityId
+    listEditData.oldList = dataToEdit.oldList || []
+    listEditData.target = dataToEdit.target
+    listEditData.source = dataToEdit.source
+
+    showListEditorModal.value = true
+  }
+}
+
+const closeListEditModal = (entityId: string): void => {
+  roleToShow.value = entityId
+  showListEditorModal.value = false
+}
 
 const name = computed({
   get: (): string => {
@@ -129,8 +154,21 @@ onMounted(async () => {
         </template>
 
         <template #right>
-          <!--          <UsersViewModal :user="userToShow" @after:leave="userToShow = null"/>-->
-          <GroupsAddModal @refresh-groups-list="refreshHandler()" />
+          <RolesViewModal
+            :roleId="roleToShow"
+            @after:leave="roleToShow = ''"
+            @refresh-groups-list="refreshHandler"
+            @edit-list="launchListEditing"
+          />
+
+          <RolesAddModal @refresh-groups-list="refreshHandler()" />
+
+          <ListEditor
+            :list-edit-data="listEditData"
+            :show-modal="showListEditorModal"
+            @refresh-list="refreshHandler"
+            @close="closeListEditModal"
+          />
         </template>
       </UDashboardNavbar>
     </template>
@@ -144,54 +182,6 @@ onMounted(async () => {
           placeholder="Найти по имени"
         />
         <div class="flex flex-wrap items-center gap-1.5">
-          <!--          <UsersEditGroupsModal :users="table?.tableApi?.getFilteredSelectedRowModel().rows || []">-->
-          <!--            <UButton-->
-          <!--              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"-->
-          <!--              label="Добавить/убрать группы"-->
-          <!--              color="primary"-->
-          <!--              variant="subtle"-->
-          <!--              icon="i-lucide-users"-->
-          <!--            >-->
-          <!--              <template #trailing>-->
-          <!--                <UKbd>-->
-          <!--                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}-->
-          <!--                </UKbd>-->
-          <!--              </template>-->
-          <!--            </UButton>-->
-          <!--          </UsersEditGroupsModal>-->
-
-          <!--          <UsersEditRolesModal :users="table?.tableApi?.getFilteredSelectedRowModel().rows || []">-->
-          <!--            <UButton-->
-          <!--              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"-->
-          <!--              label="Добавить/убрать роли"-->
-          <!--              color="info"-->
-          <!--              variant="subtle"-->
-          <!--              icon="i-oui-app-users-roles"-->
-          <!--            >-->
-          <!--              <template #trailing>-->
-          <!--                <UKbd>-->
-          <!--                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}-->
-          <!--                </UKbd>-->
-          <!--              </template>-->
-          <!--            </UButton>-->
-          <!--          </UsersEditRolesModal>-->
-
-          <UsersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
-            <UButton
-              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-              label="Удалить"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-trash"
-            >
-              <template #trailing>
-                <UKbd>
-                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
-                </UKbd>
-              </template>
-            </UButton>
-          </UsersDeleteModal>
-
           <UDropdownMenu
             :items="
               table?.tableApi

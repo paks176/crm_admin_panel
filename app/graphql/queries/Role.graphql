@@ -1,0 +1,12 @@
+query Role($roleId: ID!) {
+  Role(id: $roleId) {
+    documents
+    id
+    members {
+      id
+      name
+    }
+    name
+    transliterate_name
+  }
+}
