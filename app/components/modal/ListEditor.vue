@@ -40,6 +40,14 @@ const opened = ref(false)
 const allEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
 const chosenEntities: Ref<User[] | Role[] | Group[] | []> = ref([])
 
+const filteredItems = computed(() => {
+  if (!searchText.value) {
+    return allEntities.value
+  } else {
+    return allEntities.value.filter(item => item.name.toLowerCase().includes(searchText.value.toLowerCase()))
+  }
+})
+
 let source = ref('')
 let target = ref('')
 
@@ -232,8 +240,6 @@ const onSubmit = async () => {
   if (bindAction) {
     const payload = getPayload()
 
-    console.log(payload)
-
     if (payload.toBind.length || payload.toUnbind.length) {
       isLoadingSubmit.value = true
       try {
@@ -265,7 +271,6 @@ const onSubmit = async () => {
 
 watch(() => $props.showModal, async () => {
   opened.value = $props.showModal
-  console.log($props.listEditData)
   if (opened.value) {
     source.value = ruSource($props.listEditData.source)
     target.value = ruTarget($props.listEditData.target)
@@ -305,23 +310,28 @@ watch(() => $props.showModal, async () => {
         <LoadingCover :show="isLoadingSubmit" />
 
         <div class="border-r border-light-gray pr-4 w-1/2">
-          <div class="mb-4 flex gap-4 content-between items-center">
-            <p class="text-muted">Все {{ target }}</p>
-            <i class="text-muted text-xs" v-if="chosenEntities.length">Скрыто {{ chosenEntities.length }} выбранных</i>
+          <div class="mb-4 content-between items-center">
+            <p class="text-muted mb-3">Все {{ target === 'пользователей' ? 'пользователи' : target }}</p>
+            <i class="text-muted text-xs" :class="{ 'opacity-0': !chosenEntities.length }">
+              Скрыто {{ chosenEntities.length }} выбранных
+            </i>
           </div>
 
           <UInput
             v-model="searchText"
             variant="outline"
-            class="mb-4"
+            class="mb-4 w-full"
             placeholder="Поиск"
+            icon="i-lucide-circle-x"
+            aria-label="Очистить"
+            @click="searchText = ''"
           />
 
           <div class="list list--all">
             <LoadingCover :show="isLoadingList" />
 
             <UBadge
-              v-for="entity in allEntities"
+              v-for="entity in filteredItems"
               :label="entity.name"
               class="pr-0 py-0 gap-2 shrink-0 overflow-hidden"
               variant="soft"
@@ -339,7 +349,7 @@ watch(() => $props.showModal, async () => {
         </div>
 
         <div class="pl-4 w-1/2">
-          <p class="text-muted mb-4">Выбранные {{ target }}</p>
+          <p class="text-muted mb-4">Выбранные {{ target === 'пользователей' ? 'пользователи' : target }}</p>
 
           <div class="list list--chosen">
             <UBadge
