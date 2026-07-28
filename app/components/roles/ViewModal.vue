@@ -341,37 +341,39 @@ watch(opened, () => {
               <summary class="mb-3">
                 <span class="font-semibold cursor-pointer">Права участников с ролью</span>
               </summary>
-              <table class="tg">
-                <thead>
-                <tr>
-                  <th class="tg-0lax"></th>
-                  <th class="tg-0lax"></th>
-                  <th class="tg-0lax">Чтение</th>
-                  <th class="tg-0lax">Создание</th>
-                  <th class="tg-0lax">Обновление</th>
-                  <th class="tg-0lax">Удаление</th>
-                </tr>
-                </thead>
-                <tbody>
-                <template v-for="(value, key) of localCopyRole.documents">
-                  <tr>
-                    <td class="tg-0lax" rowspan="2">{{ key }}</td>
-                    <td class="tg-0lax">Объект</td>
-                    <td class="tg-0lax">{{ value.one.actions.read ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.one.actions.create ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.one.actions.update ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.one.actions.delete ? '✅️' : '❌' }}</td>
+              <div class="table__wrapper">
+                <table class="table">
+                  <thead>
+                  <tr class="table__top">
+                    <th></th>
+                    <th></th>
+                    <th>Чтение</th>
+                    <th>Создание</th>
+                    <th>Обновление</th>
+                    <th>Удаление</th>
                   </tr>
-                  <tr>
-                    <td class="tg-0lax">Список</td>
-                    <td class="tg-0lax">{{ value.many.actions.read ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.many.actions.create ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.many.actions.update ? '✅️' : '❌' }}</td>
-                    <td class="tg-0lax">{{ value.many.actions.delete ? '✅️' : '❌' }}</td>
-                  </tr>
-                </template>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                  <template v-for="(value, key) of localCopyRole.documents">
+                    <tr>
+                      <td  rowspan="2">{{ key }}</td>
+                      <td>Объект</td>
+                      <td>{{ value.one.actions.read ? '✅️' : '❌' }}</td>
+                      <td>{{ value.one.actions.create ? '✅️' : '❌' }}</td>
+                      <td>{{ value.one.actions.update ? '✅️' : '❌' }}</td>
+                      <td>{{ value.one.actions.delete ? '✅️' : '❌' }}</td>
+                    </tr>
+                    <tr>
+                      <td>Список</td>
+                      <td>{{ value.many.actions.read ? '✅️' : '❌' }}</td>
+                      <td>{{ value.many.actions.create ? '✅️' : '❌' }}</td>
+                      <td>{{ value.many.actions.update ? '✅️' : '❌' }}</td>
+                      <td>{{ value.many.actions.delete ? '✅️' : '❌' }}</td>
+                    </tr>
+                  </template>
+                  </tbody>
+                </table>
+              </div>
             </details>
           </div>
 
@@ -406,40 +408,47 @@ watch(opened, () => {
   }
 }
 
-.tg {
-  border-collapse: collapse;
-  border-spacing: 0;
+.table {
+  border-collapse: separate;
   width: 100%;
-}
-
-.tg td {
-  border-color: var(--color-gray);
-  border-style: solid;
-  border-width: 1px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  overflow: hidden;
-  padding: 10px 5px;
-  word-break: normal;
-  &[rowspan='2'] {
-    font-weight: bold;
-    text-align: start;
+  &__wrapper {
+    max-height: 320px;
+    overflow: auto;
+    border: 1px solid var(--color-light-gray);
   }
-}
-
-.tg th {
-  border-color: var(--color-gray);
-  border-style: solid;
-  border-width: 1px;
-  font-weight: bold;
-  overflow: hidden;
-  padding: 10px 5px;
-  word-break: normal;
-  text-align: center;
-}
-
-.tg .tg-0lax {
-  vertical-align: center;
-  text-align: center;
+  &__top {
+    position: sticky;
+    top: 0;
+  }
+  td {
+    border-color: var(--color-light-gray);
+    border-style: solid;
+    border-width: 1px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    padding: 8px 5px;
+    word-break: normal;
+    background-color: white;
+    vertical-align: center;
+    text-align: center;
+    &[rowspan='2'] {
+      font-weight: bold;
+      text-align: start;
+    }
+  }
+  th {
+    border-color: var(--color-light-gray);
+    border-style: solid;
+    border-width: 1px;
+    font-weight: bold;
+    overflow: hidden;
+    padding: 8px 5px;
+    word-break: normal;
+    text-align: center;
+    font-size: 14px;
+    background-color: #e2e8f5;
+    vertical-align: center;
+  }
 }
 </style>
