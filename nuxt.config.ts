@@ -8,6 +8,10 @@ export default defineNuxtConfig({
     '@nuxtjs/apollo'
   ],
 
+  colorMode: {
+    preference: 'light'
+  },
+
   ui: {
     fonts: false
   },

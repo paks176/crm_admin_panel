@@ -1,8 +1,6 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 
-colorMode.preference = 'white'
-
 useHead({
   meta: [
     { charset: 'utf-8' },
