@@ -110,15 +110,17 @@ const columns: Ref<TableColumn<Role>[]> = ref([
 
 const listEditData: ListEditData = {
   entityId: '',
+  entityName: '',
   oldList: [],
   target: '',
   source: ''
 }
 
 const launchListEditing = (dataToEdit: ListEditData): void => {
-  const { entityId, target, source } = dataToEdit
+  const { entityName, entityId, target, source } = dataToEdit
   if (entityId && target && source) {
     listEditData.entityId = entityId
+    listEditData.entityName = entityName
     listEditData.oldList = dataToEdit.oldList || []
     listEditData.target = dataToEdit.target
     listEditData.source = dataToEdit.source

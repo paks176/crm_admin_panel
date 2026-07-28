@@ -14,9 +14,10 @@ type BindingTasks = {
 }
 
 type RequestPayload = {
-  userIds: string[],
-  toBind: string[],
-  toUnbind: string[],
+  userIdsToBind: string[],
+  userIdsToUnbind: string[],
+  objectsToBind: string[],
+  objectsToUnbind: string[],
   runBind: boolean,
   runUnbind: boolean
 }
@@ -27,7 +28,8 @@ const $props = defineProps<{
     oldList: User[] | Group[] | Role[] | [],
     source: MainEntities | '' // что меняем или с какой страницы вызвали модалку
     target: MainEntities | '' // у чего меняем
-    entityId: string
+    entityId: string,
+    entityName: string
   }
 }>()
 
@@ -44,7 +46,11 @@ const filteredItems = computed(() => {
   if (!searchText.value) {
     return allEntities.value
   } else {
-    return allEntities.value.filter(item => item.name.toLowerCase().includes(searchText.value.toLowerCase()))
+    return allEntities.value.filter(item => {
+      if (item.name) {
+        return item.name.toLowerCase().includes(searchText.value.toLowerCase())
+      }
+    })
   }
 })
 
@@ -182,32 +188,31 @@ const getBindingTasks = (): BindingTasks => {
 
 const getPayload = (): RequestPayload => {
   const tasks = getBindingTasks()
-
   const payload: RequestPayload = {
-    userIds: [],
-    toBind: tasks.toBind,
-    toUnbind: tasks.toUnbind,
+    userIdsToBind: [],
+    userIdsToUnbind: [],
+    objectsToBind: tasks.toBind,
+    objectsToUnbind: tasks.toUnbind,
     runBind: tasks.toBind.length > 0,
     runUnbind: tasks.toUnbind.length > 0
   }
-
   if ($props.listEditData.source === 'users') {
-    payload.userIds = [ $props.listEditData.entityId ]
+    if (tasks.toBind.length) {
+      payload.objectsToBind = tasks.toBind // groups/roles
+      payload.userIdsToBind  = [ $props.listEditData.entityId ] // user
+    }
+    if (tasks.toUnbind) {
+      payload.objectsToUnbind = tasks.toUnbind // groups/roles
+      payload.userIdsToUnbind  = [ $props.listEditData.entityId ] // user
+    }
   } else {
-    const copyOfChosen = [...chosenEntities.value]
-    const copyOfOld = [ ...$props.listEditData.oldList ]
-    const toBindRaw = copyOfChosen.filter((chosenItem) => {
-      return !(copyOfOld.find((oldItem) => oldItem.id === chosenItem.id ))
-    })
-
-    if (toBindRaw.length) {
-      payload.toBind = [$props.listEditData.entityId]
-      payload.userIds = toBindRaw.map((item) => item.id)
-    } else {
-      if (tasks.toUnbind.length) {
-        payload.userIds = tasks.toUnbind
-        payload.toUnbind = [$props.listEditData.entityId]
-      }
+    if (tasks.toBind.length) {
+      payload.objectsToBind = [ $props.listEditData.entityId ] // groups/roles
+      payload.userIdsToBind = tasks.toBind // user
+    }
+    if (tasks.toUnbind.length) {
+      payload.objectsToUnbind = [ $props.listEditData.entityId ] // groups/roles
+      payload.userIdsToUnbind  = tasks.toUnbind // user
     }
   }
   return payload
@@ -240,7 +245,7 @@ const onSubmit = async () => {
   if (bindAction) {
     const payload = getPayload()
 
-    if (payload.toBind.length || payload.toUnbind.length) {
+    if (payload.objectsToBind.length || payload.objectsToUnbind.length) {
       isLoadingSubmit.value = true
       try {
         await bindAction(payload)
@@ -274,7 +279,7 @@ watch(() => $props.showModal, async () => {
   if (opened.value) {
     source.value = ruSource($props.listEditData.source)
     target.value = ruTarget($props.listEditData.target)
-    modalTitle.value = 'Изменить ' + target.value + ' ' + source.value
+    modalTitle.value = 'Изменить ' + target.value + ' ' + source.value + ' "' + $props.listEditData.entityName + '"'
     if ($props.listEditData.target) {
       isLoadingList.value = true
       allEntities.value = [...await getAll($props.listEditData.target)]
@@ -322,7 +327,7 @@ watch(() => $props.showModal, async () => {
             variant="outline"
             class="mb-4 w-full"
             placeholder="Поиск"
-            icon="i-lucide-circle-x"
+            trailing-icon="i-lucide-circle-x"
             aria-label="Очистить"
             @click="searchText = ''"
           />

@@ -1,19 +1,20 @@
 mutation changeRoles(
-  $userIds: [ID!]!,
-  $toBind: [ID!],
-  $toUnbind: [ID!],
+  $userIdsToBind: [ID!]!,
+  $userIdsToUnbind: [ID!]!,
+  $objectsToBind: [ID!],
+  $objectsToUnbind: [ID!],
   $runBind: Boolean!
   $runUnbind: Boolean!
 ) {
 
-  bindRoles(userIds: $userIds, roleIds: $toBind) @include(if: $runBind) {
+  bindRoles(userIds: $userIdsToBind, roleIds: $objectsToBind) @include(if: $runBind) {
     id
     roles {
       id
     }
   }
 
-  unbindRoles(userIds: $userIds, roleIds: $toUnbind) @include(if: $runUnbind) {
+  unbindRoles(userIds: $userIdsToUnbind, roleIds: $objectsToUnbind) @include(if: $runUnbind) {
     id
     roles {
       id

@@ -71,6 +71,7 @@ const isLoading = ref(false)
 const showEditListDialog = (target: string, oldList: User[] | []): void => {
   opened.value = false
   $emits('editList', {
+    entityName: localCopyGroup.name,
     entityId: $props.groupId,
     source: 'groups',
     target,

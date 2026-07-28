@@ -66,6 +66,7 @@ const isLoading = ref(false)
 const showEditListDialog = (target: string, oldList: User[] | []): void => {
   opened.value = false
   $emits('editList', {
+    entityName: localCopyRole.name,
     entityId: $props.roleId,
     source: 'roles',
     target,
@@ -277,7 +278,7 @@ watch(opened, () => {
 </script>
 
 <template>
-  <UModal v-model:open="opened" title="Группа">
+  <UModal v-model:open="opened" title="Роль">
     <template #body>
       <UCard class="relative" variant="soft">
         <LoadingCover :show="isLoading"/>

@@ -1,19 +1,20 @@
 mutation changeGroups(
-  $userIds: [ID!]!,
-  $toBind: [ID!],
-  $toUnbind: [ID!],
+  $userIdsToBind: [ID!]!,
+  $userIdsToUnbind: [ID!]!,
+  $objectsToBind: [ID!],
+  $objectsToUnbind: [ID!],
   $runBind: Boolean!
   $runUnbind: Boolean!
 ) {
 
-  bindGroups(userIds: $userIds, groupIds: $toBind) @include(if: $runBind) {
+  bindGroups(userIds: $userIdsToBind, groupIds: $objectsToBind) @include(if: $runBind) {
     id
     roles {
       id
     }
   }
 
-  unbindGroups(userIds: $userIds, groupIds: $toUnbind) @include(if: $runUnbind) {
+  unbindGroups(userIds: $userIdsToUnbind, groupIds: $objectsToUnbind) @include(if: $runUnbind) {
     id
     roles {
       id
