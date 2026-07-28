@@ -59,7 +59,7 @@ watch(() => open.value, () => {
 
 <template>
   <UModal v-model:open="open" title="Новая группа">
-    <UButton label="Добавить группу" icon="i-lucide-plus" />
+    <UButton disabled label="Добавить группу" icon="i-lucide-plus" />
 
     <template #body>
       <UForm

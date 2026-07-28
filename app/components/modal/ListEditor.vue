@@ -195,9 +195,13 @@ const getPayload = (): RequestPayload => {
     if (toBindRaw.length) {
       payload.toBind = [$props.listEditData.entityId]
       payload.userIds = toBindRaw.map((item) => item.id)
-    } else payload.toBind = []
+    } else {
+      if (tasks.toUnbind.length) {
+        payload.userIds = tasks.toUnbind
+        payload.toUnbind = [$props.listEditData.entityId]
+      }
+    }
   }
-
   return payload
 }
 

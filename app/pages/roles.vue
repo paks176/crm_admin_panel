@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type {Role, ApolloError, QueryResponse, ListEditData} from '~/types'
+import type {Role, ApolloError, QueryResponse, ListEditData } from '~/types'
 import ALL_ROLES from '~/graphql/queries/AllRoles.graphql'
 import ListEditor from "~/components/modal/ListEditor.vue";
 
@@ -96,6 +96,15 @@ const columns: Ref<TableColumn<Role>[]> = ref([
         onClick: () => roleToShow.value = row.original.id
       }, row.getValue('name'))
     }
+  },
+  {
+    header: 'Участников',
+    cell: ({ row }) => {
+      const members = row.original.members
+      if (members.length) {
+        return members.length
+      } else return 0
+    }
   }
 ])
 
@@ -141,7 +150,6 @@ onMounted(async () => {
       close: true
     })
   }
-  console.log(allRoles.value)
 })
 </script>
 

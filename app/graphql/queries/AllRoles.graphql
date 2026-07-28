@@ -3,5 +3,9 @@ query AllRoles {
     id
     name
     documents
+    members {
+      id
+      name
+    }
   }
 }

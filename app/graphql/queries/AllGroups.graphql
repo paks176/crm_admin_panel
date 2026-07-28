@@ -20,5 +20,9 @@ query AllGroups {
       updated_date
       avatar
     }
+    members {
+      id
+      name
+    }
   }
 }

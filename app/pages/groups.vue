@@ -114,6 +114,15 @@ const columns: Ref<TableColumn<Group>[]> = ref([
         return h('div', { class: 'flex flex-wrap gap-2' }, badges)
       }
     }
+  },
+  {
+    header: 'Участников',
+    cell: ({ row }) => {
+      const members = row.original.members
+      if (members.length) {
+        return members.length
+      } else return 0
+    }
   }
 ])
 
